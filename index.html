@@ -55,6 +55,9 @@
   .bubble.bot{align-self:flex-start;background:var(--chip);color:var(--ink);border-bottom-left-radius:4px}
   .bubble .en{font-size:15px}
   .bubble .de{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
+  .bubble .helpbtn{background:transparent;border:1px solid var(--border);border-radius:999px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--muted);margin-top:6px}
+  .bubble .helpbtn:hover{background:var(--surface)}
+  .bubble .de-help{font-size:13px;color:var(--ink);margin-top:6px;padding:6px 10px;background:var(--surface);border-radius:8px;border-left:3px solid var(--accent)}
   .correction{background:rgba(180,83,9,.08);border:1px dashed var(--warn);border-radius:10px;padding:10px;margin-top:6px;font-size:13px;color:var(--ink)}
   .correction b{color:var(--warn)}
   .praise{background:rgba(21,128,61,.08);border:1px dashed var(--good);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13px;color:var(--good)}
@@ -165,6 +168,7 @@
         <option value="hobbies">Hobbys & Freizeit</option>
       </select>
       <button class="btn ghost" id="tutorReset">Chat zurücksetzen</button>
+      <label class="muted" style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="alwaysDe"> 🇩🇪 Deutsche Hilfe immer zeigen</label>
     </div>
   </div>
 
@@ -484,79 +488,137 @@ function detectMistakes(text){
 }
 
 /* ---------------- Tutor ---------------- */
+const TR = {}; // englischer Satz -> deutsche Übersetzung
+function _r(en, de){ TR[en]=de; return en; }
 const TUTOR_REPLIES = {
   general: {
-    greet:["Hi there! How are you today?", "Hey! Great to hear your voice. What's on your mind?", "Hello! What would you like to talk about?"],
-    followups:[
-      "That's interesting! Can you tell me a bit more about it?",
-      "Nice! And what do you usually do on a day like that?",
-      "Cool. How did you feel about it?",
-      "Oh really? What happened next?",
-      "Got it. And why do you think that is?",
-      "Sounds good. Could you describe it in a few sentences?",
+    greet:[
+      _r("Hi there! How are you today?", "Hallo! Wie geht es dir heute?"),
+      _r("Hey! Great to hear your voice. What's on your mind?", "Hey! Schön, dich zu hören. Was beschäftigt dich?"),
+      _r("Hello! What would you like to talk about?", "Hallo! Worüber möchtest du reden?"),
     ],
-    closers:["Great practice today! Want to try one more sentence?","Keep going – you're doing well. Tell me about your week."],
+    followups:[
+      _r("That's interesting! Can you tell me a bit more about it?", "Interessant! Kannst du mir mehr darüber erzählen?"),
+      _r("Nice! And what do you usually do on a day like that?", "Schön! Und was machst du normalerweise an so einem Tag?"),
+      _r("Cool. How did you feel about it?", "Cool. Wie hat sich das angefühlt?"),
+      _r("Oh really? What happened next?", "Echt? Was ist dann passiert?"),
+      _r("Got it. And why do you think that is?", "Verstehe. Und warum denkst du, ist das so?"),
+      _r("Sounds good. Could you describe it in a few sentences?", "Klingt gut. Kannst du es in ein paar Sätzen beschreiben?"),
+    ],
+    closers:[
+      _r("Great practice today! Want to try one more sentence?", "Super Übung heute! Willst du noch einen Satz probieren?"),
+      _r("Keep going – you're doing well. Tell me about your week.", "Weiter so – du machst das gut. Erzähl mir von deiner Woche."),
+    ],
   },
   daily: {
-    greet:["Tell me about your day. What did you do this morning?","Hi! What's a typical day like for you?"],
-    followups:[
-      "And what did you have for breakfast?",
-      "Do you usually commute by car, bike or public transport?",
-      "How do you usually spend your evenings?",
-      "What's your favourite part of the day, and why?",
-      "Do you have any morning routines?",
+    greet:[
+      _r("Tell me about your day. What did you do this morning?", "Erzähl mir von deinem Tag. Was hast du heute Morgen gemacht?"),
+      _r("Hi! What's a typical day like for you?", "Hi! Wie sieht ein typischer Tag bei dir aus?"),
     ],
-    closers:["Nice chat about your day! Next time try to use 'usually', 'often' and 'sometimes'."],
+    followups:[
+      _r("And what did you have for breakfast?", "Und was hattest du zum Frühstück?"),
+      _r("Do you usually commute by car, bike or public transport?", "Pendelst du normalerweise mit dem Auto, Fahrrad oder mit den Öffentlichen?"),
+      _r("How do you usually spend your evenings?", "Wie verbringst du normalerweise deine Abende?"),
+      _r("What's your favourite part of the day, and why?", "Was ist dein Lieblingsmoment am Tag, und warum?"),
+      _r("Do you have any morning routines?", "Hast du irgendwelche Morgenroutinen?"),
+    ],
+    closers:[_r("Nice chat about your day! Next time try to use 'usually', 'often' and 'sometimes'.","Schönes Gespräch über deinen Tag! Nächstes Mal versuch 'usually', 'often' und 'sometimes' zu nutzen.")],
   },
   travel: {
-    greet:["Let's talk about travel. Where was your last trip?","Hi! Tell me about a place you'd love to visit."],
-    followups:[
-      "How did you get there?",
-      "Did you travel alone or with someone?",
-      "What was the most surprising thing about the place?",
-      "Would you recommend it? Why or why not?",
-      "What's on your bucket list for next year?",
+    greet:[
+      _r("Let's talk about travel. Where was your last trip?", "Reden wir übers Reisen. Wohin ging deine letzte Reise?"),
+      _r("Hi! Tell me about a place you'd love to visit.", "Hi! Erzähl mir von einem Ort, den du gern besuchen würdest."),
     ],
-    closers:["Great travel story! Try using past tense verbs like 'went', 'saw', 'ate'."],
+    followups:[
+      _r("How did you get there?", "Wie bist du dort hingekommen?"),
+      _r("Did you travel alone or with someone?", "Bist du allein gereist oder mit jemandem?"),
+      _r("What was the most surprising thing about the place?", "Was war das Überraschendste an dem Ort?"),
+      _r("Would you recommend it? Why or why not?", "Würdest du es weiterempfehlen? Warum (nicht)?"),
+      _r("What's on your bucket list for next year?", "Was steht nächstes Jahr auf deiner Wunschliste?"),
+    ],
+    closers:[_r("Great travel story! Try using past tense verbs like 'went', 'saw', 'ate'.","Tolle Reisegeschichte! Nutze Vergangenheitsformen wie 'went', 'saw', 'ate'.")],
   },
   work: {
-    greet:["Let's talk about work. What's your job?","Hi! Tell me what a work day looks like for you."],
-    followups:[
-      "What's the most challenging part of your work?",
-      "Who do you work with most?",
-      "What do you enjoy most about your job?",
-      "Do you have any big projects right now?",
-      "If you could change one thing at work, what would it be?",
+    greet:[
+      _r("Let's talk about work. What's your job?", "Reden wir über die Arbeit. Was machst du beruflich?"),
+      _r("Hi! Tell me what a work day looks like for you.", "Hi! Erzähl mir, wie ein Arbeitstag bei dir aussieht."),
     ],
-    closers:["Excellent work talk! Next time add 'at the moment' or 'these days' for current events."],
+    followups:[
+      _r("What's the most challenging part of your work?", "Was ist der schwierigste Teil deiner Arbeit?"),
+      _r("Who do you work with most?", "Mit wem arbeitest du am meisten zusammen?"),
+      _r("What do you enjoy most about your job?", "Was gefällt dir an deinem Job am meisten?"),
+      _r("Do you have any big projects right now?", "Hast du gerade große Projekte?"),
+      _r("If you could change one thing at work, what would it be?", "Wenn du eine Sache bei der Arbeit ändern könntest – welche?"),
+    ],
+    closers:[_r("Excellent work talk! Next time add 'at the moment' or 'these days' for current events.","Tolles Berufsgespräch! Nächstes Mal mit 'at the moment' oder 'these days' für aktuelle Dinge.")],
   },
   food: {
-    greet:["Let's talk about food. What's your favourite dish?","Hi! What did you eat today?"],
-    followups:[
-      "Can you describe how it's made?",
-      "Sweet or savoury – which do you prefer?",
-      "Do you cook at home or eat out more?",
-      "What's a dish from your country everyone should try?",
-      "What's one food you absolutely don't like?",
+    greet:[
+      _r("Let's talk about food. What's your favourite dish?", "Reden wir über Essen. Was ist dein Lieblingsgericht?"),
+      _r("Hi! What did you eat today?", "Hi! Was hast du heute gegessen?"),
     ],
-    closers:["Delicious conversation! Try food verbs: 'bake', 'fry', 'roast', 'boil', 'grill'."],
+    followups:[
+      _r("Can you describe how it's made?", "Kannst du beschreiben, wie es zubereitet wird?"),
+      _r("Sweet or savoury – which do you prefer?", "Süß oder herzhaft – was magst du lieber?"),
+      _r("Do you cook at home or eat out more?", "Kochst du zu Hause oder isst du eher auswärts?"),
+      _r("What's a dish from your country everyone should try?", "Welches Gericht aus deinem Land sollte jeder probieren?"),
+      _r("What's one food you absolutely don't like?", "Welches Essen magst du überhaupt nicht?"),
+    ],
+    closers:[_r("Delicious conversation! Try food verbs: 'bake', 'fry', 'roast', 'boil', 'grill'.","Leckeres Gespräch! Probier die Koch-Verben: 'bake', 'fry', 'roast', 'boil', 'grill'.")],
   },
   hobbies: {
-    greet:["What do you like to do in your free time?","Hi! Any hobbies you're into these days?"],
-    followups:[
-      "How long have you been doing that?",
-      "Why do you enjoy it?",
-      "Do you do it alone or with others?",
-      "Have you ever tried to learn something new that was really hard?",
-      "What would you like to try next?",
+    greet:[
+      _r("What do you like to do in your free time?", "Was machst du gern in deiner Freizeit?"),
+      _r("Hi! Any hobbies you're into these days?", "Hi! Hast du gerade irgendwelche Hobbys?"),
     ],
-    closers:["Fun chat! Remember 'have been + -ing' for ongoing activities."],
+    followups:[
+      _r("How long have you been doing that?", "Wie lange machst du das schon?"),
+      _r("Why do you enjoy it?", "Warum macht es dir Spaß?"),
+      _r("Do you do it alone or with others?", "Machst du es allein oder mit anderen?"),
+      _r("Have you ever tried to learn something new that was really hard?", "Hast du schon mal etwas Neues gelernt, das richtig schwer war?"),
+      _r("What would you like to try next?", "Was möchtest du als Nächstes ausprobieren?"),
+    ],
+    closers:[_r("Fun chat! Remember 'have been + -ing' for ongoing activities.","Schönes Gespräch! Denk an 'have been + -ing' für andauernde Tätigkeiten.")],
   },
 };
+// zusätzliche feste Übersetzungen für kontextuelle Tutor-Antworten
+Object.assign(TR, {
+  "Good question! Let me answer briefly, and then I'll ask you something too.":"Gute Frage! Ich antworte kurz, und dann frage ich dich auch etwas.",
+  "I'm sorry to hear that. What usually helps you feel better?":"Das tut mir leid zu hören. Was hilft dir normalerweise, dich besser zu fühlen?",
+  "That's wonderful!":"Das ist wunderbar!",
+  "Great practice! 🎉":"Super Übung! 🎉",
+});
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 const chatEl = $('chat');
 let turn = 0;
+function germanFor(text){
+  if(!text) return '';
+  if(TR[text]) return TR[text];
+  // Teilweise Übereinstimmung (für kontextuelle Antworten mit Anhang)
+  for(const k of Object.keys(TR)){
+    if(text.startsWith(k)){ return TR[k] + (text.length>k.length ? ' …' : ''); }
+  }
+  // Fallback: lokaler Übersetzer
+  try { return translateSentence(text); } catch { return ''; }
+}
+function addHelpButton(div, text){
+  const btn = document.createElement('button');
+  btn.className='helpbtn';
+  btn.textContent = '🇩🇪 Hilfe';
+  const show = ()=>{
+    const de = germanFor(text);
+    if(!de) return;
+    const d = document.createElement('div');
+    d.className='de-help';
+    d.textContent = de;
+    div.appendChild(d);
+    btn.remove();
+  };
+  btn.addEventListener('click', show);
+  div.appendChild(btn);
+  if($('alwaysDe')?.checked) show();
+}
 function appendBubble(role, text, extras={}){
   const div = document.createElement('div');
   div.className = 'bubble '+role;
@@ -575,6 +637,7 @@ function appendBubble(role, text, extras={}){
     p.textContent = extras.praise;
     div.appendChild(p);
   }
+  if(role==='bot') addHelpButton(div, text);
   chatEl.appendChild(div);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
@@ -634,67 +697,69 @@ function kickoff(){
 const SCENARIOS = [
   {id:'restaurant', emoji:'🍝', title:'Im Restaurant', desc:'Bestellen, nachfragen, bezahlen',
     steps:[
-      {bot:"Good evening! Welcome to La Trattoria. A table for one?", hints:["Yes, for one please.","Hi, a table for two, by the window if possible."]},
-      {bot:"Sure. Here's the menu. Can I get you something to drink first?", hints:["Could I have some water, please?","I'd like a glass of red wine.","Just a sparkling water, thanks."]},
-      {bot:"Great. Are you ready to order, or would you like a few more minutes?", hints:["I'm ready. I'll have the lasagna.","A few more minutes, please."]},
-      {bot:"Excellent choice. Would you like a starter with that?", hints:["Yes, I'll start with the tomato soup.","No thanks, just the main course."]},
-      {bot:"Anything for dessert or just the bill?", hints:["Just the bill, please.","Yes, I'd love some tiramisu."]},
-      {bot:"Of course. Here you go. How would you like to pay?", hints:["By card, please.","In cash, thanks."]},
-      {bot:"Thank you! Have a lovely evening.", hints:["Thank you, you too!","Thanks, bye!"], end:true},
+      {bot:"Good evening! Welcome to La Trattoria. A table for one?", de:"Guten Abend! Willkommen bei La Trattoria. Ein Tisch für eine Person?", hints:["Yes, for one please.","Hi, a table for two, by the window if possible."]},
+      {bot:"Sure. Here's the menu. Can I get you something to drink first?", de:"Gerne. Hier ist die Karte. Kann ich Ihnen zuerst etwas zu trinken bringen?", hints:["Could I have some water, please?","I'd like a glass of red wine.","Just a sparkling water, thanks."]},
+      {bot:"Great. Are you ready to order, or would you like a few more minutes?", de:"Super. Möchten Sie bestellen oder noch ein paar Minuten?", hints:["I'm ready. I'll have the lasagna.","A few more minutes, please."]},
+      {bot:"Excellent choice. Would you like a starter with that?", de:"Ausgezeichnete Wahl. Möchten Sie eine Vorspeise dazu?", hints:["Yes, I'll start with the tomato soup.","No thanks, just the main course."]},
+      {bot:"Anything for dessert or just the bill?", de:"Noch etwas als Nachtisch oder gleich die Rechnung?", hints:["Just the bill, please.","Yes, I'd love some tiramisu."]},
+      {bot:"Of course. Here you go. How would you like to pay?", de:"Natürlich. Bitte sehr. Wie möchten Sie zahlen?", hints:["By card, please.","In cash, thanks."]},
+      {bot:"Thank you! Have a lovely evening.", de:"Danke! Einen schönen Abend noch.", hints:["Thank you, you too!","Thanks, bye!"], end:true},
     ]},
   {id:'airport', emoji:'✈️', title:'Am Flughafen', desc:'Check-in, Gepäck, Sicherheitskontrolle',
     steps:[
-      {bot:"Good morning. May I see your passport and ticket, please?", hints:["Here they are.","Sure, here you go."]},
-      {bot:"Thank you. Are you checking any bags today?", hints:["Yes, one suitcase, please.","No, just carry-on."]},
-      {bot:"Would you prefer a window or an aisle seat?", hints:["Window, please.","An aisle seat, thank you."]},
-      {bot:"Here's your boarding pass. The gate is 24, boarding at 11:30.", hints:["Thank you very much.","Great, thanks!"]},
-      {bot:"Please proceed to security. Have a nice flight!", hints:["Thank you, have a good day."], end:true},
+      {bot:"Good morning. May I see your passport and ticket, please?", de:"Guten Morgen. Darf ich Ihren Pass und Ihr Ticket sehen?", hints:["Here they are.","Sure, here you go."]},
+      {bot:"Thank you. Are you checking any bags today?", de:"Danke. Geben Sie heute Gepäck auf?", hints:["Yes, one suitcase, please.","No, just carry-on."]},
+      {bot:"Would you prefer a window or an aisle seat?", de:"Möchten Sie lieber einen Fenster- oder einen Gangplatz?", hints:["Window, please.","An aisle seat, thank you."]},
+      {bot:"Here's your boarding pass. The gate is 24, boarding at 11:30.", de:"Hier ist Ihre Bordkarte. Gate 24, Boarding um 11:30 Uhr.", hints:["Thank you very much.","Great, thanks!"]},
+      {bot:"Please proceed to security. Have a nice flight!", de:"Bitte gehen Sie zur Sicherheitskontrolle. Guten Flug!", hints:["Thank you, have a good day."], end:true},
     ]},
   {id:'hotel', emoji:'🏨', title:'Hotel-Check-in', desc:'Zimmer buchen, reklamieren',
     steps:[
-      {bot:"Welcome to the Grand Hotel. Do you have a reservation?", hints:["Yes, under the name Schmidt.","No, do you have any rooms available tonight?"]},
-      {bot:"Yes, I see it. A double room for two nights. Is that right?", hints:["Yes, that's right.","Actually, we'd like to stay one more night if possible."]},
-      {bot:"Could I see an ID, please? Breakfast is included from 7 to 10.", hints:["Here's my passport. Thanks.","Great, thank you."]},
-      {bot:"Here's your key. Room 312, third floor. Anything else?", hints:["Could I have an extra pillow, please?","Is there Wi-Fi in the room?","That's all, thanks."]},
-      {bot:"Of course. Enjoy your stay!", hints:["Thank you!"], end:true},
+      {bot:"Welcome to the Grand Hotel. Do you have a reservation?", de:"Willkommen im Grand Hotel. Haben Sie eine Reservierung?", hints:["Yes, under the name Schmidt.","No, do you have any rooms available tonight?"]},
+      {bot:"Yes, I see it. A double room for two nights. Is that right?", de:"Ja, ich sehe sie. Ein Doppelzimmer für zwei Nächte. Stimmt das?", hints:["Yes, that's right.","Actually, we'd like to stay one more night if possible."]},
+      {bot:"Could I see an ID, please? Breakfast is included from 7 to 10.", de:"Darf ich einen Ausweis sehen? Frühstück ist von 7 bis 10 inklusive.", hints:["Here's my passport. Thanks.","Great, thank you."]},
+      {bot:"Here's your key. Room 312, third floor. Anything else?", de:"Hier Ihr Schlüssel. Zimmer 312, dritter Stock. Sonst noch etwas?", hints:["Could I have an extra pillow, please?","Is there Wi-Fi in the room?","That's all, thanks."]},
+      {bot:"Of course. Enjoy your stay!", de:"Selbstverständlich. Genießen Sie Ihren Aufenthalt!", hints:["Thank you!"], end:true},
     ]},
   {id:'shopping', emoji:'🛍️', title:'Einkaufen', desc:'Kleidung, Größe, Umtausch',
     steps:[
-      {bot:"Hi! Can I help you find something?", hints:["I'm just looking, thanks.","Yes, I'm looking for a jacket."]},
-      {bot:"Sure. What size are you?", hints:["I'm a medium.","I think a large, but I'm not sure."]},
-      {bot:"Would you like to try it on? The changing rooms are right there.", hints:["Yes, please.","Thanks, where did you say?"]},
-      {bot:"How does it fit?", hints:["It's a bit tight.","It fits perfectly.","It's too big, do you have a smaller one?"]},
-      {bot:"Great. It's 49 pounds. Cash or card?", hints:["Card, please.","Can I pay in cash?"]},
-      {bot:"Thank you, have a nice day!", hints:["Thanks, you too!"], end:true},
+      {bot:"Hi! Can I help you find something?", de:"Hallo! Kann ich Ihnen bei der Suche helfen?", hints:["I'm just looking, thanks.","Yes, I'm looking for a jacket."]},
+      {bot:"Sure. What size are you?", de:"Gern. Welche Größe haben Sie?", hints:["I'm a medium.","I think a large, but I'm not sure."]},
+      {bot:"Would you like to try it on? The changing rooms are right there.", de:"Möchten Sie es anprobieren? Die Umkleiden sind gleich dort drüben.", hints:["Yes, please.","Thanks, where did you say?"]},
+      {bot:"How does it fit?", de:"Wie passt es?", hints:["It's a bit tight.","It fits perfectly.","It's too big, do you have a smaller one?"]},
+      {bot:"Great. It's 49 pounds. Cash or card?", de:"Super. Das macht 49 Pfund. Bar oder mit Karte?", hints:["Card, please.","Can I pay in cash?"]},
+      {bot:"Thank you, have a nice day!", de:"Danke, einen schönen Tag noch!", hints:["Thanks, you too!"], end:true},
     ]},
   {id:'doctor', emoji:'🩺', title:'Beim Arzt', desc:'Beschwerden beschreiben',
     steps:[
-      {bot:"Hello. What seems to be the problem today?", hints:["I have a headache and a sore throat.","I've been feeling dizzy for a few days."]},
-      {bot:"I see. How long has it been going on?", hints:["For about three days.","Since Monday."]},
-      {bot:"Any fever or other symptoms?", hints:["Yes, a bit of fever.","No, just the headache."]},
-      {bot:"Let me check. Please open your mouth and say 'ah'.", hints:["Ahh.","Like this?"]},
-      {bot:"It looks like a mild infection. I'll prescribe you something. Rest and drink plenty of water.", hints:["Thank you, doctor.","Should I come back if it gets worse?"]},
-      {bot:"Yes, come back if there's no improvement in three days. Take care.", hints:["Thank you, goodbye."], end:true},
+      {bot:"Hello. What seems to be the problem today?", de:"Hallo. Was ist das Problem heute?", hints:["I have a headache and a sore throat.","I've been feeling dizzy for a few days."]},
+      {bot:"I see. How long has it been going on?", de:"Verstehe. Seit wann ist das so?", hints:["For about three days.","Since Monday."]},
+      {bot:"Any fever or other symptoms?", de:"Haben Sie Fieber oder andere Symptome?", hints:["Yes, a bit of fever.","No, just the headache."]},
+      {bot:"Let me check. Please open your mouth and say 'ah'.", de:"Lassen Sie mich schauen. Öffnen Sie bitte den Mund und sagen Sie 'Ah'.", hints:["Ahh.","Like this?"]},
+      {bot:"It looks like a mild infection. I'll prescribe you something. Rest and drink plenty of water.", de:"Sieht nach einer leichten Infektion aus. Ich verschreibe Ihnen etwas. Ruhen Sie sich aus und trinken Sie viel Wasser.", hints:["Thank you, doctor.","Should I come back if it gets worse?"]},
+      {bot:"Yes, come back if there's no improvement in three days. Take care.", de:"Ja, kommen Sie wieder, wenn es in drei Tagen nicht besser wird. Gute Besserung.", hints:["Thank you, goodbye."], end:true},
     ]},
   {id:'interview', emoji:'💼', title:'Vorstellungsgespräch', desc:'Sich präsentieren',
     steps:[
-      {bot:"Thanks for coming in. Could you tell me a bit about yourself?", hints:["Sure. I'm a web developer with five years of experience.","I recently graduated and I love learning new things."]},
-      {bot:"What interests you about this role?", hints:["I like that you work with modern technologies.","Your team culture sounds great to me."]},
-      {bot:"What would you say is your biggest strength?", hints:["I'm very good at solving problems.","I'm a strong communicator."]},
-      {bot:"And a weakness you're working on?", hints:["I sometimes take on too much, but I'm learning to delegate.","Public speaking, but I practise a lot."]},
-      {bot:"Great. Do you have any questions for us?", hints:["Yes, what does a typical week look like?","When would you like me to start?"]},
-      {bot:"Perfect. We'll be in touch next week. Thank you!", hints:["Thank you, have a good day."], end:true},
+      {bot:"Thanks for coming in. Could you tell me a bit about yourself?", de:"Danke fürs Kommen. Könnten Sie uns etwas über sich erzählen?", hints:["Sure. I'm a web developer with five years of experience.","I recently graduated and I love learning new things."]},
+      {bot:"What interests you about this role?", de:"Was reizt Sie an dieser Stelle?", hints:["I like that you work with modern technologies.","Your team culture sounds great to me."]},
+      {bot:"What would you say is your biggest strength?", de:"Was würden Sie als Ihre größte Stärke bezeichnen?", hints:["I'm very good at solving problems.","I'm a strong communicator."]},
+      {bot:"And a weakness you're working on?", de:"Und eine Schwäche, an der Sie arbeiten?", hints:["I sometimes take on too much, but I'm learning to delegate.","Public speaking, but I practise a lot."]},
+      {bot:"Great. Do you have any questions for us?", de:"Super. Haben Sie Fragen an uns?", hints:["Yes, what does a typical week look like?","When would you like me to start?"]},
+      {bot:"Perfect. We'll be in touch next week. Thank you!", de:"Perfekt. Wir melden uns nächste Woche. Vielen Dank!", hints:["Thank you, have a good day."], end:true},
     ]},
   {id:'smalltalk', emoji:'☕', title:'Smalltalk', desc:'Jemanden neu kennenlernen',
     steps:[
-      {bot:"Hi, I don't think we've met. I'm Alex.", hints:["Nice to meet you, Alex. I'm ...","Hi Alex, pleasure to meet you."]},
-      {bot:"Where are you from originally?", hints:["I'm from Germany.","Originally from Switzerland, but I live in London now."]},
-      {bot:"Nice. How long have you been here?", hints:["For about two years.","I just moved last month."]},
-      {bot:"What do you do for a living?", hints:["I work in IT.","I'm a teacher."]},
-      {bot:"Cool. Do you have any plans for the weekend?", hints:["Yes, I'm meeting friends.","Not really, just relaxing."]},
-      {bot:"Sounds good. Nice chatting with you!", hints:["You too, take care!"], end:true},
+      {bot:"Hi, I don't think we've met. I'm Alex.", de:"Hi, ich glaube, wir kennen uns noch nicht. Ich bin Alex.", hints:["Nice to meet you, Alex. I'm ...","Hi Alex, pleasure to meet you."]},
+      {bot:"Where are you from originally?", de:"Wo kommst du ursprünglich her?", hints:["I'm from Germany.","Originally from Switzerland, but I live in London now."]},
+      {bot:"Nice. How long have you been here?", de:"Schön. Wie lange bist du schon hier?", hints:["For about two years.","I just moved last month."]},
+      {bot:"What do you do for a living?", de:"Was machst du beruflich?", hints:["I work in IT.","I'm a teacher."]},
+      {bot:"Cool. Do you have any plans for the weekend?", de:"Cool. Hast du Pläne fürs Wochenende?", hints:["Yes, I'm meeting friends.","Not really, just relaxing."]},
+      {bot:"Sounds good. Nice chatting with you!", de:"Klingt gut. Hat Spaß gemacht zu plaudern!", hints:["You too, take care!"], end:true},
     ]},
 ];
+// Rollenspiel-Übersetzungen in die zentrale Map aufnehmen
+SCENARIOS.forEach(s=>s.steps.forEach(st=>{ if(st.de) TR[st.bot]=st.de; }));
 
 const scenariosEl = $('scenarios');
 SCENARIOS.forEach(s=>{
@@ -721,6 +786,7 @@ function rpAppend(role, text, extras={}){
   if(extras.correction){
     const c=document.createElement('div');c.className='correction';c.innerHTML=`<b>Korrektur:</b> ${extras.correction.html}`;div.appendChild(c);
   }
+  if(role==='bot') addHelpButton(div, text);
   $('rpChat').appendChild(div);
   $('rpChat').scrollTop = $('rpChat').scrollHeight;
 }
@@ -1453,6 +1519,15 @@ $('resetProgress').addEventListener('click', ()=>{
 
 /* ---------------- Boot ---------------- */
 if(location.protocol==='file:'){ $('fileWarn').classList.remove('hide'); }
+// Toggle "Deutsche Hilfe immer anzeigen" persistieren
+$('alwaysDe').checked = !!store.get('alwaysDe', false);
+$('alwaysDe').addEventListener('change', e=>{
+  store.set('alwaysDe', e.target.checked);
+  // alle bestehenden Bot-Blasen aufklappen
+  if(e.target.checked){
+    document.querySelectorAll('.bubble.bot .helpbtn').forEach(b=>b.click());
+  }
+});
 updateStats();
 // Set saved level
 if(state.level){
