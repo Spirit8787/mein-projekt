@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SpeakUp – Englisch lernen</title>
+<meta name="description" content="Englisch lernen mit Mikrofon-Tutor, Rollenspielen, Karteikarten und Wort-für-Wort-Übersetzer.">
+<meta name="theme-color" content="#0f766e" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141516" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SpeakUp">
 <style>
   :root{
     --bg:#f6f1ea; --surface:#ffffff; --ink:#1b1f24; --muted:#6b7280;
@@ -121,6 +129,7 @@
     </div>
   </div>
   <div class="row">
+    <button class="btn sec hide" id="installBtn" onclick="tryInstall()" title="Als App installieren">📥 Installieren</button>
     <span class="chip" id="voiceStatus">Stimme: wird geladen…</span>
   </div>
 </header>
@@ -1657,6 +1666,29 @@ $('resetProgress').addEventListener('click', ()=>{
     save(); renderProgress(); renderDecks();
   }
 });
+
+/* ---------------- PWA: Service Worker ---------------- */
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+// Install-Button, wenn der Browser die App installierbar macht
+let _deferredInstall = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  _deferredInstall = e;
+  const btn = document.getElementById('installBtn');
+  if(btn){ btn.classList.remove('hide'); }
+});
+function tryInstall(){
+  if(!_deferredInstall){
+    alert("Installieren geht in deinem Browser so:\n\n• Edge/Chrome: oben rechts in der Adressleiste das kleine '⊕'/Installations-Symbol klicken.\n• Oder Menü '⋯' → 'Apps' → 'Diese Website als App installieren'.\n• iPhone/Safari: Teilen-Button → 'Zum Home-Bildschirm'.");
+    return;
+  }
+  _deferredInstall.prompt();
+  _deferredInstall.userChoice.finally(()=>{ _deferredInstall=null; const b=document.getElementById('installBtn'); if(b) b.classList.add('hide'); });
+}
 
 /* ---------------- Boot ---------------- */
 if(location.protocol==='file:'){ $('fileWarn').classList.remove('hide'); }
