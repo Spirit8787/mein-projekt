@@ -1,0 +1,1433 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpeakUp – Englisch lernen</title>
+<style>
+  :root{
+    --bg:#f6f1ea; --surface:#ffffff; --ink:#1b1f24; --muted:#6b7280;
+    --accent:#0f766e; --accent-ink:#ffffff; --warn:#b45309; --bad:#b91c1c; --good:#15803d;
+    --border:#e5e0d6; --chip:#efe8dc; --shadow:0 2px 12px rgba(27,31,36,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141516; --surface:#1d1f22; --ink:#e9e6df; --muted:#9aa0a6;
+      --accent:#2dd4bf; --accent-ink:#0b1210; --warn:#f59e0b; --bad:#f87171; --good:#4ade80;
+      --border:#2a2d31; --chip:#242730; --shadow:0 2px 14px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;line-height:1.5}
+  header{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface)}
+  header h1{margin:0;font-size:20px;letter-spacing:.2px}
+  header .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#38bdf8);display:grid;place-items:center;color:var(--accent-ink);font-weight:700}
+  nav.tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto}
+  nav.tabs button{background:transparent;border:1px solid transparent;color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px;white-space:nowrap}
+  nav.tabs button:hover{background:var(--chip)}
+  nav.tabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  main{max-width:960px;margin:0 auto;padding:16px}
+  section.view{display:none}
+  section.view.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+  h2{margin:0 0 8px 0;font-size:18px}
+  h3{margin:0 0 6px 0;font-size:15px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  button.btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer;font-size:14px}
+  button.btn.sec{background:var(--chip);color:var(--ink)}
+  button.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--ink)}
+  button.btn:disabled{opacity:.5;cursor:not-allowed}
+  input,select,textarea{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;width:100%}
+  textarea{min-height:76px;resize:vertical}
+  .chip{display:inline-block;background:var(--chip);color:var(--ink);padding:4px 10px;border-radius:999px;font-size:12px;margin-right:6px}
+  .chip.good{background:rgba(21,128,61,.14);color:var(--good)}
+  .chip.warn{background:rgba(180,83,9,.14);color:var(--warn)}
+  .chip.bad{background:rgba(185,28,28,.14);color:var(--bad)}
+
+  /* Tutor */
+  .chat{display:flex;flex-direction:column;gap:10px;margin:10px 0 14px;min-height:260px}
+  .bubble{max-width:82%;padding:10px 14px;border-radius:14px;line-height:1.5;font-size:15px;white-space:pre-wrap;word-wrap:break-word}
+  .bubble.user{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}
+  .bubble.bot{align-self:flex-start;background:var(--chip);color:var(--ink);border-bottom-left-radius:4px}
+  .bubble .en{font-size:15px}
+  .bubble .de{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
+  .correction{background:rgba(180,83,9,.08);border:1px dashed var(--warn);border-radius:10px;padding:10px;margin-top:6px;font-size:13px;color:var(--ink)}
+  .correction b{color:var(--warn)}
+  .praise{background:rgba(21,128,61,.08);border:1px dashed var(--good);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13px;color:var(--good)}
+  .microw{display:flex;gap:8px;align-items:center}
+  .mic{width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);border:none;display:grid;place-items:center;cursor:pointer;flex-shrink:0;box-shadow:var(--shadow)}
+  .mic.listening{background:var(--bad);animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(185,28,28,.6)}70%{box-shadow:0 0 0 18px rgba(185,28,28,0)}100%{box-shadow:0 0 0 0 rgba(185,28,28,0)}}
+  .mic svg{width:24px;height:24px;fill:currentColor}
+  .segmented{display:inline-flex;background:var(--chip);border-radius:10px;padding:3px;gap:3px}
+  .segmented button{background:transparent;border:none;color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px}
+  .segmented button.active{background:var(--surface);box-shadow:var(--shadow)}
+
+  /* Roleplay */
+  .scenarios{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .scenario{background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:transform .08s}
+  .scenario:hover{transform:translateY(-1px)}
+  .scenario .emoji{font-size:28px;margin-bottom:4px}
+  .scenario h3{margin:0}
+  .scenario .muted{margin-top:4px;font-size:12px}
+
+  /* Flashcards */
+  .decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+  .deck{background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer}
+  .deck h3{margin:0}
+  .deck .meta{color:var(--muted);font-size:12px;margin-top:4px}
+  .flashcard{perspective:1000px;margin:14px 0}
+  .flashcard-inner{position:relative;width:100%;min-height:200px;transition:transform .6s;transform-style:preserve-3d;cursor:pointer}
+  .flashcard.flipped .flashcard-inner{transform:rotateY(180deg)}
+  .flashcard-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  .flashcard-face.back{transform:rotateY(180deg)}
+  .flashcard-face .big{font-size:26px;font-weight:700;margin-bottom:6px}
+  .flashcard-face .phon{color:var(--muted);font-size:14px;margin-bottom:8px}
+  .flashcard-face .example{color:var(--muted);font-size:14px;margin-top:10px;font-style:italic}
+  .progressbar{height:8px;background:var(--chip);border-radius:999px;overflow:hidden;margin-top:6px}
+  .progressbar>div{height:100%;background:var(--accent);transition:width .4s}
+
+  /* Translator */
+  .wordgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+  .wordchip{background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+  .wordchip .w{font-weight:700;font-size:16px}
+  .wordchip .pos{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .wordchip .meaning{margin-top:4px;font-size:14px}
+  .wordchip .note{margin-top:4px;font-size:12px;color:var(--muted)}
+
+  .footer{color:var(--muted);font-size:12px;text-align:center;padding:16px}
+  .spacer{height:8px}
+  .hide{display:none!important}
+  details>summary{cursor:pointer;color:var(--muted);font-size:13px;padding:6px 0}
+  kbd{background:var(--chip);border-radius:6px;padding:2px 6px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">S</div>
+    <div>
+      <h1>SpeakUp</h1>
+      <div class="sub">Englisch lernen mit Stimme, Rollenspiel & Karteikarten</div>
+    </div>
+  </div>
+  <div class="row">
+    <span class="chip" id="voiceStatus">Stimme: wird geladen…</span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="tutor" class="active">🎙️ Tutor</button>
+  <button data-tab="roleplay">🎭 Rollenspiel</button>
+  <button data-tab="flashcards">🗂️ Karteikarten</button>
+  <button data-tab="translator">🔤 Übersetzer</button>
+  <button data-tab="progress">📈 Fortschritt</button>
+</nav>
+
+<main>
+
+<!-- TUTOR -->
+<section class="view active" id="view-tutor">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2>Sprich mit deinem Tutor</h2>
+        <div class="muted">Drück das Mikro, sag einen englischen Satz. Dein Tutor antwortet laut und korrigiert Fehler direkt.</div>
+      </div>
+      <div class="segmented" id="levelSeg">
+        <button data-level="A1">A1</button>
+        <button data-level="A2" class="active">A2</button>
+        <button data-level="B1">B1</button>
+        <button data-level="B2">B2</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="muted">Thema:</label>
+      <select id="tutorTopic" style="max-width:260px">
+        <option value="general">Allgemein / Smalltalk</option>
+        <option value="daily">Mein Tag & Alltag</option>
+        <option value="travel">Reisen</option>
+        <option value="work">Arbeit & Beruf</option>
+        <option value="food">Essen & Trinken</option>
+        <option value="hobbies">Hobbys & Freizeit</option>
+      </select>
+      <button class="btn ghost" id="tutorReset">Chat zurücksetzen</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chat" id="chat"></div>
+    <div class="microw">
+      <button class="mic" id="micBtn" title="Mikrofon an/aus">
+        <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12z"/></svg>
+      </button>
+      <input id="tutorInput" placeholder="…oder tipp hier auf Englisch und drück Enter"/>
+      <button class="btn" id="tutorSend">Senden</button>
+    </div>
+    <div class="muted" style="margin-top:8px" id="micHint">Tipp: Erlaube dem Browser den Mikrofon-Zugriff. Funktioniert am besten in Chrome & Edge.</div>
+  </div>
+</section>
+
+<!-- ROLEPLAY -->
+<section class="view" id="view-roleplay">
+  <div class="card">
+    <h2>Rollenspiele</h2>
+    <div class="muted">Wähle ein Szenario. Der Tutor spielt die andere Rolle, du antwortest per Mikro oder Text.</div>
+    <div class="scenarios" id="scenarios" style="margin-top:12px"></div>
+  </div>
+  <div class="card hide" id="rpActive">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2 id="rpTitle"></h2>
+        <div class="muted" id="rpDesc"></div>
+      </div>
+      <button class="btn ghost" id="rpExit">Zurück</button>
+    </div>
+    <div class="chat" id="rpChat" style="margin-top:10px"></div>
+    <div class="microw">
+      <button class="mic" id="rpMic">
+        <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12z"/></svg>
+      </button>
+      <input id="rpInput" placeholder="Antworte auf Englisch…"/>
+      <button class="btn" id="rpSend">Senden</button>
+    </div>
+    <details style="margin-top:8px"><summary>💡 Mögliche Antworten anzeigen</summary><div id="rpHint" class="muted" style="margin-top:6px"></div></details>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section class="view" id="view-flashcards">
+  <div class="card" id="decksCard">
+    <h2>Karteikarten</h2>
+    <div class="muted">Nach Themen sortiert. Richtig beantwortete Karten tauchen seltener wieder auf.</div>
+    <div class="decks" id="decks" style="margin-top:12px"></div>
+  </div>
+  <div class="card hide" id="deckActive">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2 id="deckTitle"></h2>
+        <div class="muted" id="deckMeta"></div>
+      </div>
+      <button class="btn ghost" id="deckExit">Zurück</button>
+    </div>
+    <div class="progressbar"><div id="deckProgress" style="width:0%"></div></div>
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-inner">
+        <div class="flashcard-face front">
+          <div class="pos muted" id="cardPos"></div>
+          <div class="big" id="cardFront"></div>
+          <div class="phon" id="cardPhon"></div>
+          <div class="muted">Antippen zum Umdrehen</div>
+        </div>
+        <div class="flashcard-face back">
+          <div class="big" id="cardBack"></div>
+          <div class="example" id="cardExample"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:space-between;margin-top:8px">
+      <button class="btn ghost" id="cardSpeak">🔊 Vorsprechen</button>
+      <div class="row">
+        <button class="btn sec" id="cardWrong">❌ Noch nicht</button>
+        <button class="btn" id="cardRight">✅ Konnte ich</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSLATOR -->
+<section class="view" id="view-translator">
+  <div class="card">
+    <h2>Übersetzer & Wort-für-Wort-Erklärung</h2>
+    <div class="muted">Gib einen englischen Satz ein. Du bekommst die deutsche Übersetzung plus jedes Wort erklärt.</div>
+    <div style="margin-top:12px">
+      <textarea id="translateIn" placeholder="z. B. 'I have been living here for two years.'"></textarea>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="translateBtn">Übersetzen & erklären</button>
+      <button class="btn ghost" id="translateSpeak">🔊 Satz anhören</button>
+      <button class="btn ghost" id="translateMic">🎙️ Satz einsprechen</button>
+      <button class="btn ghost" id="translateSwap">🔁 DE → EN</button>
+    </div>
+  </div>
+  <div class="card hide" id="translateResult">
+    <h3>Übersetzung</h3>
+    <div id="translationOut" style="font-size:17px;margin:6px 0 10px"></div>
+    <h3>Wort für Wort</h3>
+    <div id="wordgrid" class="wordgrid"></div>
+    <details style="margin-top:12px"><summary>Grammatik-Hinweise</summary><div id="grammarNotes" class="muted" style="margin-top:6px"></div></details>
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<section class="view" id="view-progress">
+  <div class="card">
+    <h2>Dein Fortschritt</h2>
+    <div class="muted">Alle Daten liegen nur in deinem Browser.</div>
+    <div class="row" style="margin-top:12px;align-items:stretch">
+      <div class="card" style="flex:1;min-width:140px;margin:0">
+        <div class="muted">Gesprochene Sätze</div>
+        <div style="font-size:26px;font-weight:700" id="statSpoken">0</div>
+      </div>
+      <div class="card" style="flex:1;min-width:140px;margin:0">
+        <div class="muted">Gelernte Karten</div>
+        <div style="font-size:26px;font-weight:700" id="statCards">0</div>
+      </div>
+      <div class="card" style="flex:1;min-width:140px;margin:0">
+        <div class="muted">Abgeschlossene Rollenspiele</div>
+        <div style="font-size:26px;font-weight:700" id="statRP">0</div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <h3>Karteikarten-Status</h3>
+      <div id="deckStatus"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn sec" id="resetProgress">Fortschritt zurücksetzen</button>
+    </div>
+  </div>
+</section>
+
+<div class="footer">SpeakUp · lokal in deinem Browser · benötigt für die Sprachfunktionen die Web Speech API (Chrome/Edge empfohlen)</div>
+</main>
+
+<script>
+/* ---------------- Utilities ---------------- */
+const $ = (id)=>document.getElementById(id);
+const store = {
+  get(k,def){ try{ return JSON.parse(localStorage.getItem('speakup_'+k)) ?? def; }catch{ return def; } },
+  set(k,v){ try{ localStorage.setItem('speakup_'+k, JSON.stringify(v)); }catch{} }
+};
+let state = store.get('state', {
+  level:'A2',
+  stats:{spoken:0, cards:0, rp:0},
+  decks:{} // deckId -> {cardId:{correct,wrong}}
+});
+function save(){ store.set('state', state); updateStats(); }
+
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('section.view').forEach(v=>v.classList.remove('active'));
+    $('view-'+b.dataset.tab).classList.add('active');
+    if(b.dataset.tab==='progress') renderProgress();
+  });
+});
+
+/* ---------------- Speech ---------------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let enVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices();
+  enVoice = vs.find(v=>/^en[-_]GB/i.test(v.lang)) || vs.find(v=>/^en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null;
+  $('voiceStatus').textContent = enVoice ? `Stimme: ${enVoice.name}` : (vs.length? 'Stimme: keine englische gefunden' : 'Stimme: nicht verfügbar');
+}
+if('speechSynthesis' in window){
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}else{
+  $('voiceStatus').textContent = 'Stimme: nicht verfügbar';
+}
+function speak(text, opts={}){
+  if(!('speechSynthesis' in window)) return;
+  try{ speechSynthesis.cancel(); }catch{}
+  const u = new SpeechSynthesisUtterance(text);
+  if(enVoice) u.voice = enVoice;
+  u.lang = 'en-US';
+  u.rate = opts.rate ?? 0.95;
+  u.pitch = opts.pitch ?? 1.0;
+  speechSynthesis.speak(u);
+}
+function startMic(onResult, btn){
+  if(!SpeechRec){ alert('Dein Browser unterstützt keine Sprachaufnahme. Probier Chrome oder Edge.'); return null; }
+  const r = new SpeechRec();
+  r.lang = 'en-US';
+  r.interimResults = false;
+  r.maxAlternatives = 1;
+  r.onresult = (e)=>{
+    const t = e.results[0][0].transcript;
+    onResult(t);
+  };
+  r.onerror = ()=>{ btn?.classList.remove('listening'); };
+  r.onend = ()=>{ btn?.classList.remove('listening'); };
+  btn?.classList.add('listening');
+  r.start();
+  return r;
+}
+
+/* ---------------- Mistake detection (local) ---------------- */
+const CORRECTIONS = [
+  // Common Germanisms / vocabulary swaps
+  {re:/\bmake a (photo|picture)\b/gi, with:'take a $1', note:"Im Englischen: 'take a photo/picture', nicht 'make'."},
+  {re:/\bmake (sport|sports)\b/gi, with:'do sports', note:"'do sports' oder 'play football/tennis', nicht 'make sports'."},
+  {re:/\bmake a party\b/gi, with:'throw a party', note:"'throw a party' oder 'have a party'."},
+  {re:/\bmake homework\b/gi, with:'do homework', note:"'do homework' – im Englischen 'do', nicht 'make'."},
+  {re:/\bmake an exam\b/gi, with:'take an exam', note:"'take an exam', nicht 'make'."},
+  {re:/\bbecome a (coffee|tea|burger|sandwich|salad|beer)\b/gi, with:'get a $1', note:"'become' heißt 'werden'. Für 'bekommen' nimm 'get' oder 'receive'."},
+  {re:/\bhandy\b/gi, with:'mobile phone', note:"'Handy' auf Englisch ist 'mobile phone' oder 'cell phone' – nicht 'handy' (das heißt praktisch)."},
+  {re:/\bbeamer\b/gi, with:'projector', note:"'Beamer' heißt auf Englisch 'projector'."},
+  {re:/\boldtimer\b/gi, with:'classic car', note:"Richtiger Begriff: 'classic car' oder 'vintage car'."},
+  {re:/\bchef\b/gi, with:'boss', note:"'Chef' (Vorgesetzter) ist 'boss'; 'chef' ist nur der Küchenchef."},
+  // Verb forms / missing 'to'
+  {re:/\b(want|need|try|hope|plan|decide|like|love)\s+(go|eat|see|know|learn|speak|try|come|say|meet|buy|read|write|work)\b/gi, with:'$1 to $2', note:"Nach Verben wie 'want/need/plan' folgt Infinitiv mit 'to'."},
+  {re:/\bgoed\b/gi, with:'went', note:"'go' ist unregelmäßig: go → went → gone."},
+  {re:/\bcomed\b/gi, with:'came', note:"'come' → came → come."},
+  {re:/\brunned\b/gi, with:'ran', note:"'run' → ran → run."},
+  {re:/\bseed\b/gi, with:'saw', note:"'see' → saw → seen."},
+  {re:/\btaked\b/gi, with:'took', note:"'take' → took → taken."},
+  {re:/\beated\b/gi, with:'ate', note:"'eat' → ate → eaten."},
+  {re:/\bbuyed\b/gi, with:'bought', note:"'buy' → bought → bought."},
+  {re:/\bbringed\b/gi, with:'brought', note:"'bring' → brought → brought."},
+  {re:/\bteached\b/gi, with:'taught', note:"'teach' → taught → taught."},
+  {re:/\bthinked\b/gi, with:'thought', note:"'think' → thought → thought."},
+  {re:/\bknowed\b/gi, with:'knew', note:"'know' → knew → known."},
+  {re:/\bdrived\b/gi, with:'drove', note:"'drive' → drove → driven."},
+  {re:/\bwrited\b/gi, with:'wrote', note:"'write' → wrote → written."},
+  // Articles with time of day
+  {re:/\bin morning\b/gi, with:'in the morning', note:"Richtig: 'in the morning / in the afternoon / in the evening'."},
+  {re:/\bin evening\b/gi, with:'in the evening', note:"Mit Artikel: 'in the evening'."},
+  // Since / for
+  {re:/\bsince (two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(years?|months?|weeks?|days?|hours?|minutes?)\b/gi, with:'for $1 $2', note:"Zeitraum = 'for', Zeitpunkt = 'since'. 'for 2 years' / 'since 2020'."},
+  // People/other
+  {re:/\bpeoples\b/gi, with:'people', note:"'people' ist schon Plural – kein zusätzliches -s."},
+  {re:/\binformations\b/gi, with:'information', note:"'information' ist nicht zählbar – kein -s."},
+  {re:/\badvices\b/gi, with:'advice', note:"'advice' ist nicht zählbar – 'a piece of advice'."},
+  {re:/\bfurnitures\b/gi, with:'furniture', note:"'furniture' ist nicht zählbar."},
+  // Agreement
+  {re:/\bhe (don't|do not)\b/gi, with:"he doesn't", note:"3. Person Singular: 'he/she/it doesn't'."},
+  {re:/\bshe (don't|do not)\b/gi, with:"she doesn't", note:"'she doesn't', 3. Person Singular."},
+  {re:/\bhe have\b/gi, with:'he has', note:"3. Person Singular: 'he has', 'she has'."},
+  {re:/\bshe have\b/gi, with:'she has', note:"'she has' statt 'she have'."},
+  // Prepositions
+  {re:/\bon weekend\b/gi, with:'at the weekend (UK) / on the weekend (US)', note:"BE: 'at the weekend', AE: 'on the weekend'."},
+  {re:/\bin the night\b/gi, with:'at night', note:"'at night' – ohne Artikel."},
+  // Double negatives
+  {re:/\bdon't (know|want|see|need|like) no(thing|body|where)\b/gi, with:"don't $1 any$2", note:"Keine doppelte Verneinung: 'don't know anything'."},
+  // 'how looks like'
+  {re:/\bhow (does|do) (he|she|it|they|you|i) look like\b/gi, with:"what does $2 look like", note:"Richtig: 'What does she look like?' – nicht 'how'."},
+  // 'I am agree'
+  {re:/\b(i am|he is|she is|we are|they are) agree\b/gi, with:'$1 ... I agree', note:"'agree' ist ein Verb: 'I agree', 'she agrees'. Nicht 'I am agree'."},
+  // 'since long time'
+  {re:/\bsince (a )?long time\b/gi, with:'for a long time', note:"Dauer immer mit 'for'."},
+  // 'make a question'
+  {re:/\bmake a question\b/gi, with:'ask a question', note:"'ask a question', nicht 'make'."},
+  // 'how is it called'
+  {re:/\bhow (is|are) (it|they) called\b/gi, with:'what $1 $2 called', note:"'What is it called?' – im Englischen 'what', nicht 'how'."},
+  // 'I have X years' (age)
+  {re:/\bi have (\d+)\s*years\b/gi, with:'I am $1 years old', note:"Alter: 'I am X years old' – nicht 'I have X years'."},
+];
+function detectMistakes(text){
+  const issues = [];
+  let corrected = text;
+  for(const rule of CORRECTIONS){
+    if(rule.re.test(corrected)){
+      const before = corrected;
+      corrected = corrected.replace(rule.re, rule.with);
+      if(before!==corrected){
+        issues.push({note:rule.note, before, after:corrected});
+      }
+      rule.re.lastIndex = 0;
+    }
+  }
+  // Capitalization & punctuation
+  const trimmed = corrected.trim();
+  if(trimmed){
+    const cap = trimmed[0].toUpperCase()+trimmed.slice(1);
+    if(cap !== trimmed){ corrected = cap; issues.push({note:"Der erste Buchstabe eines Satzes wird groß geschrieben."}); }
+    if(!/[.!?]$/.test(corrected)){ corrected = corrected + '.'; /* silent */ }
+  }
+  // 'i ' lowercase
+  if(/\bi\b/.test(corrected)){
+    corrected = corrected.replace(/\bi\b/g,'I');
+    if(/\bi\s/.test(text)) issues.push({note:"'I' (ich) wird im Englischen immer groß geschrieben."});
+  }
+  return {corrected, issues};
+}
+
+/* ---------------- Tutor ---------------- */
+const TUTOR_REPLIES = {
+  general: {
+    greet:["Hi there! How are you today?", "Hey! Great to hear your voice. What's on your mind?", "Hello! What would you like to talk about?"],
+    followups:[
+      "That's interesting! Can you tell me a bit more about it?",
+      "Nice! And what do you usually do on a day like that?",
+      "Cool. How did you feel about it?",
+      "Oh really? What happened next?",
+      "Got it. And why do you think that is?",
+      "Sounds good. Could you describe it in a few sentences?",
+    ],
+    closers:["Great practice today! Want to try one more sentence?","Keep going – you're doing well. Tell me about your week."],
+  },
+  daily: {
+    greet:["Tell me about your day. What did you do this morning?","Hi! What's a typical day like for you?"],
+    followups:[
+      "And what did you have for breakfast?",
+      "Do you usually commute by car, bike or public transport?",
+      "How do you usually spend your evenings?",
+      "What's your favourite part of the day, and why?",
+      "Do you have any morning routines?",
+    ],
+    closers:["Nice chat about your day! Next time try to use 'usually', 'often' and 'sometimes'."],
+  },
+  travel: {
+    greet:["Let's talk about travel. Where was your last trip?","Hi! Tell me about a place you'd love to visit."],
+    followups:[
+      "How did you get there?",
+      "Did you travel alone or with someone?",
+      "What was the most surprising thing about the place?",
+      "Would you recommend it? Why or why not?",
+      "What's on your bucket list for next year?",
+    ],
+    closers:["Great travel story! Try using past tense verbs like 'went', 'saw', 'ate'."],
+  },
+  work: {
+    greet:["Let's talk about work. What's your job?","Hi! Tell me what a work day looks like for you."],
+    followups:[
+      "What's the most challenging part of your work?",
+      "Who do you work with most?",
+      "What do you enjoy most about your job?",
+      "Do you have any big projects right now?",
+      "If you could change one thing at work, what would it be?",
+    ],
+    closers:["Excellent work talk! Next time add 'at the moment' or 'these days' for current events."],
+  },
+  food: {
+    greet:["Let's talk about food. What's your favourite dish?","Hi! What did you eat today?"],
+    followups:[
+      "Can you describe how it's made?",
+      "Sweet or savoury – which do you prefer?",
+      "Do you cook at home or eat out more?",
+      "What's a dish from your country everyone should try?",
+      "What's one food you absolutely don't like?",
+    ],
+    closers:["Delicious conversation! Try food verbs: 'bake', 'fry', 'roast', 'boil', 'grill'."],
+  },
+  hobbies: {
+    greet:["What do you like to do in your free time?","Hi! Any hobbies you're into these days?"],
+    followups:[
+      "How long have you been doing that?",
+      "Why do you enjoy it?",
+      "Do you do it alone or with others?",
+      "Have you ever tried to learn something new that was really hard?",
+      "What would you like to try next?",
+    ],
+    closers:["Fun chat! Remember 'have been + -ing' for ongoing activities."],
+  },
+};
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const chatEl = $('chat');
+let turn = 0;
+function appendBubble(role, text, extras={}){
+  const div = document.createElement('div');
+  div.className = 'bubble '+role;
+  const en = document.createElement('div'); en.className='en'; en.textContent = text;
+  div.appendChild(en);
+  if(extras.de){ const d=document.createElement('div'); d.className='de'; d.textContent=extras.de; div.appendChild(d); }
+  if(extras.correction){
+    const c = document.createElement('div');
+    c.className='correction';
+    c.innerHTML = `<b>Korrektur:</b> ${extras.correction.html}`;
+    div.appendChild(c);
+  }
+  if(extras.praise){
+    const p = document.createElement('div');
+    p.className='praise';
+    p.textContent = extras.praise;
+    div.appendChild(p);
+  }
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+function tutorReply(userText){
+  const topic = $('tutorTopic').value;
+  const bank = TUTOR_REPLIES[topic] || TUTOR_REPLIES.general;
+  turn++;
+  if(turn <= 1) return pick(bank.greet);
+  if(turn % 6 === 0) return pick(bank.closers);
+  // light context sensitivity
+  const low = userText.toLowerCase();
+  if(/\?$/.test(userText) || /\b(what|how|why|where|when|who)\b/.test(low)){
+    return "Good question! Let me answer briefly, and then I'll ask you something too. " + pick(bank.followups);
+  }
+  if(/\b(tired|stressed|sad|angry|annoyed)\b/.test(low)) return "I'm sorry to hear that. What usually helps you feel better?";
+  if(/\b(happy|great|excited|love|amazing|wonderful)\b/.test(low)) return "That's wonderful! " + pick(bank.followups);
+  return pick(bank.followups);
+}
+function handleTutor(text){
+  if(!text || !text.trim()) return;
+  const {corrected, issues} = detectMistakes(text);
+  const correctionHtml = issues.length
+    ? `„${escapeHtml(text)}" → <b>„${escapeHtml(corrected)}"</b><br>` + issues.filter(i=>i.note).map(i=>'• '+escapeHtml(i.note)).join('<br>')
+    : null;
+  appendBubble('user', text, correctionHtml ? {correction:{html:correctionHtml}} : {praise:'Sauberer Satz! 👏'});
+  state.stats.spoken++; save();
+  const reply = tutorReply(corrected);
+  setTimeout(()=>{ appendBubble('bot', reply); speak(reply); }, 250);
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+$('tutorSend').addEventListener('click', ()=>{
+  const v = $('tutorInput').value; $('tutorInput').value=''; handleTutor(v);
+});
+$('tutorInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ handleTutor(e.target.value); e.target.value=''; }});
+$('tutorReset').addEventListener('click', ()=>{ chatEl.innerHTML=''; turn=0; kickoff(); });
+$('micBtn').addEventListener('click', ()=>{
+  const btn = $('micBtn');
+  startMic(t=>handleTutor(t), btn);
+});
+document.querySelectorAll('#levelSeg button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#levelSeg button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.level = b.dataset.level; save();
+  });
+});
+function kickoff(){
+  const topic = $('tutorTopic').value;
+  const bank = TUTOR_REPLIES[topic] || TUTOR_REPLIES.general;
+  const greet = pick(bank.greet);
+  appendBubble('bot', greet, {de:"Dein Tutor. Antworte per Mikro oder Text."});
+  speak(greet);
+}
+
+/* ---------------- Role-plays ---------------- */
+const SCENARIOS = [
+  {id:'restaurant', emoji:'🍝', title:'Im Restaurant', desc:'Bestellen, nachfragen, bezahlen',
+    steps:[
+      {bot:"Good evening! Welcome to La Trattoria. A table for one?", hints:["Yes, for one please.","Hi, a table for two, by the window if possible."]},
+      {bot:"Sure. Here's the menu. Can I get you something to drink first?", hints:["Could I have some water, please?","I'd like a glass of red wine.","Just a sparkling water, thanks."]},
+      {bot:"Great. Are you ready to order, or would you like a few more minutes?", hints:["I'm ready. I'll have the lasagna.","A few more minutes, please."]},
+      {bot:"Excellent choice. Would you like a starter with that?", hints:["Yes, I'll start with the tomato soup.","No thanks, just the main course."]},
+      {bot:"Anything for dessert or just the bill?", hints:["Just the bill, please.","Yes, I'd love some tiramisu."]},
+      {bot:"Of course. Here you go. How would you like to pay?", hints:["By card, please.","In cash, thanks."]},
+      {bot:"Thank you! Have a lovely evening.", hints:["Thank you, you too!","Thanks, bye!"], end:true},
+    ]},
+  {id:'airport', emoji:'✈️', title:'Am Flughafen', desc:'Check-in, Gepäck, Sicherheitskontrolle',
+    steps:[
+      {bot:"Good morning. May I see your passport and ticket, please?", hints:["Here they are.","Sure, here you go."]},
+      {bot:"Thank you. Are you checking any bags today?", hints:["Yes, one suitcase, please.","No, just carry-on."]},
+      {bot:"Would you prefer a window or an aisle seat?", hints:["Window, please.","An aisle seat, thank you."]},
+      {bot:"Here's your boarding pass. The gate is 24, boarding at 11:30.", hints:["Thank you very much.","Great, thanks!"]},
+      {bot:"Please proceed to security. Have a nice flight!", hints:["Thank you, have a good day."], end:true},
+    ]},
+  {id:'hotel', emoji:'🏨', title:'Hotel-Check-in', desc:'Zimmer buchen, reklamieren',
+    steps:[
+      {bot:"Welcome to the Grand Hotel. Do you have a reservation?", hints:["Yes, under the name Schmidt.","No, do you have any rooms available tonight?"]},
+      {bot:"Yes, I see it. A double room for two nights. Is that right?", hints:["Yes, that's right.","Actually, we'd like to stay one more night if possible."]},
+      {bot:"Could I see an ID, please? Breakfast is included from 7 to 10.", hints:["Here's my passport. Thanks.","Great, thank you."]},
+      {bot:"Here's your key. Room 312, third floor. Anything else?", hints:["Could I have an extra pillow, please?","Is there Wi-Fi in the room?","That's all, thanks."]},
+      {bot:"Of course. Enjoy your stay!", hints:["Thank you!"], end:true},
+    ]},
+  {id:'shopping', emoji:'🛍️', title:'Einkaufen', desc:'Kleidung, Größe, Umtausch',
+    steps:[
+      {bot:"Hi! Can I help you find something?", hints:["I'm just looking, thanks.","Yes, I'm looking for a jacket."]},
+      {bot:"Sure. What size are you?", hints:["I'm a medium.","I think a large, but I'm not sure."]},
+      {bot:"Would you like to try it on? The changing rooms are right there.", hints:["Yes, please.","Thanks, where did you say?"]},
+      {bot:"How does it fit?", hints:["It's a bit tight.","It fits perfectly.","It's too big, do you have a smaller one?"]},
+      {bot:"Great. It's 49 pounds. Cash or card?", hints:["Card, please.","Can I pay in cash?"]},
+      {bot:"Thank you, have a nice day!", hints:["Thanks, you too!"], end:true},
+    ]},
+  {id:'doctor', emoji:'🩺', title:'Beim Arzt', desc:'Beschwerden beschreiben',
+    steps:[
+      {bot:"Hello. What seems to be the problem today?", hints:["I have a headache and a sore throat.","I've been feeling dizzy for a few days."]},
+      {bot:"I see. How long has it been going on?", hints:["For about three days.","Since Monday."]},
+      {bot:"Any fever or other symptoms?", hints:["Yes, a bit of fever.","No, just the headache."]},
+      {bot:"Let me check. Please open your mouth and say 'ah'.", hints:["Ahh.","Like this?"]},
+      {bot:"It looks like a mild infection. I'll prescribe you something. Rest and drink plenty of water.", hints:["Thank you, doctor.","Should I come back if it gets worse?"]},
+      {bot:"Yes, come back if there's no improvement in three days. Take care.", hints:["Thank you, goodbye."], end:true},
+    ]},
+  {id:'interview', emoji:'💼', title:'Vorstellungsgespräch', desc:'Sich präsentieren',
+    steps:[
+      {bot:"Thanks for coming in. Could you tell me a bit about yourself?", hints:["Sure. I'm a web developer with five years of experience.","I recently graduated and I love learning new things."]},
+      {bot:"What interests you about this role?", hints:["I like that you work with modern technologies.","Your team culture sounds great to me."]},
+      {bot:"What would you say is your biggest strength?", hints:["I'm very good at solving problems.","I'm a strong communicator."]},
+      {bot:"And a weakness you're working on?", hints:["I sometimes take on too much, but I'm learning to delegate.","Public speaking, but I practise a lot."]},
+      {bot:"Great. Do you have any questions for us?", hints:["Yes, what does a typical week look like?","When would you like me to start?"]},
+      {bot:"Perfect. We'll be in touch next week. Thank you!", hints:["Thank you, have a good day."], end:true},
+    ]},
+  {id:'smalltalk', emoji:'☕', title:'Smalltalk', desc:'Jemanden neu kennenlernen',
+    steps:[
+      {bot:"Hi, I don't think we've met. I'm Alex.", hints:["Nice to meet you, Alex. I'm ...","Hi Alex, pleasure to meet you."]},
+      {bot:"Where are you from originally?", hints:["I'm from Germany.","Originally from Switzerland, but I live in London now."]},
+      {bot:"Nice. How long have you been here?", hints:["For about two years.","I just moved last month."]},
+      {bot:"What do you do for a living?", hints:["I work in IT.","I'm a teacher."]},
+      {bot:"Cool. Do you have any plans for the weekend?", hints:["Yes, I'm meeting friends.","Not really, just relaxing."]},
+      {bot:"Sounds good. Nice chatting with you!", hints:["You too, take care!"], end:true},
+    ]},
+];
+
+const scenariosEl = $('scenarios');
+SCENARIOS.forEach(s=>{
+  const el = document.createElement('div');
+  el.className='scenario';
+  el.innerHTML = `<div class="emoji">${s.emoji}</div><h3>${s.title}</h3><div class="muted">${s.desc}</div>`;
+  el.addEventListener('click', ()=>startScenario(s));
+  scenariosEl.appendChild(el);
+});
+
+let currentScenario=null, rpStep=0;
+function startScenario(s){
+  currentScenario=s; rpStep=0;
+  $('rpTitle').textContent = s.emoji+' '+s.title;
+  $('rpDesc').textContent = s.desc;
+  $('rpActive').classList.remove('hide');
+  $('rpChat').innerHTML='';
+  advanceRP(true);
+}
+function rpAppend(role, text, extras={}){
+  const div = document.createElement('div');
+  div.className='bubble '+role;
+  const en=document.createElement('div');en.className='en';en.textContent=text;div.appendChild(en);
+  if(extras.correction){
+    const c=document.createElement('div');c.className='correction';c.innerHTML=`<b>Korrektur:</b> ${extras.correction.html}`;div.appendChild(c);
+  }
+  $('rpChat').appendChild(div);
+  $('rpChat').scrollTop = $('rpChat').scrollHeight;
+}
+function advanceRP(speakIt){
+  const step = currentScenario.steps[rpStep];
+  if(!step){
+    rpAppend('bot', 'Great practice! 🎉');
+    state.stats.rp++; save();
+    return;
+  }
+  rpAppend('bot', step.bot);
+  if(speakIt) speak(step.bot);
+  $('rpHint').textContent = (step.hints||[]).join(' · ');
+  if(step.end){
+    state.stats.rp++; save();
+  }
+}
+function handleRP(text){
+  if(!text || !text.trim()) return;
+  const {corrected, issues} = detectMistakes(text);
+  const correctionHtml = issues.length
+    ? `„${escapeHtml(text)}" → <b>„${escapeHtml(corrected)}"</b><br>` + issues.filter(i=>i.note).map(i=>'• '+escapeHtml(i.note)).join('<br>')
+    : null;
+  rpAppend('user', text, correctionHtml ? {correction:{html:correctionHtml}} : {});
+  state.stats.spoken++; save();
+  rpStep++;
+  setTimeout(()=>advanceRP(true), 400);
+}
+$('rpSend').addEventListener('click', ()=>{ const v=$('rpInput').value; $('rpInput').value=''; handleRP(v); });
+$('rpInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ handleRP(e.target.value); e.target.value=''; }});
+$('rpMic').addEventListener('click', ()=>startMic(handleRP, $('rpMic')));
+$('rpExit').addEventListener('click', ()=>{ $('rpActive').classList.add('hide'); currentScenario=null; });
+
+/* ---------------- Flashcards ---------------- */
+const DECKS = [
+  {id:'daily', title:'Alltag & Zuhause', emoji:'🏠', cards:[
+    {en:'to wake up', de:'aufwachen', phon:'/wk ʌp/', ex:'I wake up at 7 every day.'},
+    {en:'to have breakfast', de:'frühstücken', phon:'/hæv ˈbrekfəst/', ex:'We have breakfast together on weekends.'},
+    {en:'to brush your teeth', de:'Zähne putzen', phon:'/brʌʃ jɔː tiːθ/', ex:'Don\'t forget to brush your teeth.'},
+    {en:'to take a shower', de:'duschen', phon:'/teɪk ə ˈʃaʊə/', ex:'I always take a shower in the morning.'},
+    {en:'to go to bed', de:'ins Bett gehen', phon:'/ɡəʊ tə bed/', ex:'I usually go to bed around 11.'},
+    {en:'to do the dishes', de:'Geschirr spülen', phon:'/duː ðə ˈdɪʃɪz/', ex:'Can you do the dishes tonight?'},
+    {en:'to tidy up', de:'aufräumen', phon:'/ˈtaɪdi ʌp/', ex:'Let\'s tidy up before the guests arrive.'},
+    {en:'the vacuum cleaner', de:'der Staubsauger', phon:'/ˈvækjuːm ˈkliːnə/', ex:'The vacuum cleaner is broken again.'},
+    {en:'the fridge', de:'der Kühlschrank', phon:'/frɪdʒ/', ex:'There\'s nothing in the fridge.'},
+    {en:'the stairs', de:'die Treppe', phon:'/steəz/', ex:'I take the stairs, not the lift.'},
+    {en:'the neighbour', de:'die Nachbarin / der Nachbar', phon:'/ˈneɪbə/', ex:'Our neighbour is very friendly.'},
+    {en:'to take out the rubbish', de:'den Müll rausbringen', phon:'/teɪk aʊt ðə ˈrʌbɪʃ/', ex:'I\'ll take out the rubbish later.'},
+    {en:'the key', de:'der Schlüssel', phon:'/kiː/', ex:'I can\'t find my keys!'},
+    {en:'the window', de:'das Fenster', phon:'/ˈwɪndəʊ/', ex:'Could you open the window?'},
+    {en:'the carpet', de:'der Teppich', phon:'/ˈkɑːpɪt/', ex:'The carpet needs cleaning.'},
+    {en:'to rent', de:'mieten', phon:'/rent/', ex:'We rent a flat in the city.'},
+    {en:'the ceiling', de:'die Decke (oben)', phon:'/ˈsiːlɪŋ/', ex:'There\'s a crack in the ceiling.'},
+    {en:'the laundry', de:'die Wäsche', phon:'/ˈlɔːndri/', ex:'I need to do the laundry.'},
+    {en:'cosy', de:'gemütlich', phon:'/ˈkəʊzi/', ex:'This café is so cosy.'},
+    {en:'the mess', de:'die Unordnung', phon:'/mes/', ex:'Sorry about the mess!'},
+  ]},
+  {id:'food', title:'Essen & Trinken', emoji:'🍽️', cards:[
+    {en:'delicious', de:'lecker', phon:'/dɪˈlɪʃəs/', ex:'This soup is delicious.'},
+    {en:'spicy', de:'scharf (würzig)', phon:'/ˈspaɪsi/', ex:'I don\'t like spicy food.'},
+    {en:'to taste', de:'schmecken, kosten', phon:'/teɪst/', ex:'It tastes a bit salty.'},
+    {en:'to order', de:'bestellen', phon:'/ˈɔːdə/', ex:'Let\'s order a pizza.'},
+    {en:'the bill', de:'die Rechnung', phon:'/bɪl/', ex:'Could we have the bill, please?'},
+    {en:'the tip', de:'das Trinkgeld', phon:'/tɪp/', ex:'We usually leave a 10% tip.'},
+    {en:'the starter', de:'die Vorspeise', phon:'/ˈstɑːtə/', ex:'I\'ll have the soup as a starter.'},
+    {en:'the main course', de:'das Hauptgericht', phon:'/meɪn kɔːs/', ex:'What would you like as a main course?'},
+    {en:'the dessert', de:'der Nachtisch', phon:'/dɪˈzɜːt/', ex:'Can I see the dessert menu?'},
+    {en:'sparkling water', de:'Mineralwasser mit Kohlensäure', phon:'/ˈspɑːklɪŋ ˈwɔːtə/', ex:'A bottle of sparkling water, please.'},
+    {en:'still water', de:'stilles Wasser', phon:'/stɪl ˈwɔːtə/', ex:'Just still water for me.'},
+    {en:'to bake', de:'backen', phon:'/beɪk/', ex:'I love baking cookies.'},
+    {en:'to roast', de:'braten (im Ofen)', phon:'/rəʊst/', ex:'Roast the potatoes for 40 minutes.'},
+    {en:'to boil', de:'kochen (Wasser)', phon:'/bɔɪl/', ex:'Boil the water first.'},
+    {en:'to fry', de:'braten (in der Pfanne)', phon:'/fraɪ/', ex:'Fry the onions until golden.'},
+    {en:'a slice of', de:'eine Scheibe', phon:'/ə slaɪs əv/', ex:'Can I have a slice of cake?'},
+    {en:'a piece of', de:'ein Stück', phon:'/ə piːs əv/', ex:'A piece of advice: start early.'},
+    {en:'leftovers', de:'Essensreste', phon:'/ˈleftəʊvəz/', ex:'We\'re eating leftovers tonight.'},
+    {en:'to be starving', de:'sehr hungrig sein', phon:'/ˈstɑːvɪŋ/', ex:'I\'m starving – let\'s eat!'},
+    {en:'sweet tooth', de:'Naschkatze', phon:'/swiːt tuːθ/', ex:'I have a real sweet tooth.'},
+  ]},
+  {id:'travel', title:'Reisen', emoji:'✈️', cards:[
+    {en:'a return ticket', de:'Hin- und Rückfahrkarte', phon:'/rɪˈtɜːn ˈtɪkɪt/', ex:'I\'d like a return ticket to Manchester.'},
+    {en:'a one-way ticket', de:'einfache Fahrt', phon:'/wʌn weɪ/', ex:'Just a one-way ticket, please.'},
+    {en:'departure', de:'die Abfahrt / der Abflug', phon:'/dɪˈpɑːtʃə/', ex:'Departure is at 8:15.'},
+    {en:'arrival', de:'die Ankunft', phon:'/əˈraɪvl/', ex:'The arrival is delayed.'},
+    {en:'the gate', de:'das Gate / Flugsteig', phon:'/ɡeɪt/', ex:'Gate 24 closes in 10 minutes.'},
+    {en:'luggage', de:'das Gepäck', phon:'/ˈlʌɡɪdʒ/', ex:'My luggage didn\'t arrive.'},
+    {en:'to check in', de:'einchecken', phon:'/tʃek ɪn/', ex:'You can check in online.'},
+    {en:'the boarding pass', de:'die Bordkarte', phon:'/ˈbɔːdɪŋ pɑːs/', ex:'Please show your boarding pass.'},
+    {en:'to miss the train', de:'den Zug verpassen', phon:'/mɪs ðə treɪn/', ex:'I missed the train by one minute.'},
+    {en:'to get lost', de:'sich verirren', phon:'/ɡet lɒst/', ex:'We got lost in the old town.'},
+    {en:'sightseeing', de:'Sehenswürdigkeiten anschauen', phon:'/ˈsaɪtsiːɪŋ/', ex:'We went sightseeing all day.'},
+    {en:'the guidebook', de:'der Reiseführer (Buch)', phon:'/ˈɡaɪdbʊk/', ex:'I always travel with a guidebook.'},
+    {en:'the itinerary', de:'das Reiseprogramm', phon:'/aɪˈtɪnərəri/', ex:'Here\'s our itinerary for the week.'},
+    {en:'to book', de:'buchen', phon:'/bʊk/', ex:'I\'ll book the hotel tonight.'},
+    {en:'a sunburn', de:'ein Sonnenbrand', phon:'/ˈsʌnbɜːn/', ex:'I got a terrible sunburn.'},
+    {en:'a souvenir', de:'ein Souvenir', phon:'/ˌsuːvəˈnɪə/', ex:'I bought a souvenir for my sister.'},
+    {en:'crowded', de:'überfüllt', phon:'/ˈkraʊdɪd/', ex:'The beach was very crowded.'},
+    {en:'off the beaten track', de:'abgelegen', phon:'/ɒf ðə ˈbiːtn træk/', ex:'We like places off the beaten track.'},
+    {en:'to pack', de:'packen', phon:'/pæk/', ex:'I need to pack my suitcase.'},
+    {en:'jet lag', de:'Jetlag', phon:'/dʒet læɡ/', ex:'I still have jet lag from the flight.'},
+  ]},
+  {id:'work', title:'Arbeit & Beruf', emoji:'💼', cards:[
+    {en:'a deadline', de:'Abgabefrist', phon:'/ˈdedlaɪn/', ex:'We have a tight deadline on Friday.'},
+    {en:'a meeting', de:'ein Meeting / Besprechung', phon:'/ˈmiːtɪŋ/', ex:'I\'m in a meeting right now.'},
+    {en:'to apply for', de:'sich bewerben für', phon:'/əˈplaɪ fɔː/', ex:'I applied for the manager role.'},
+    {en:'a colleague', de:'der/die Kolleg:in', phon:'/ˈkɒliːɡ/', ex:'My colleague helped me with the report.'},
+    {en:'to hire', de:'einstellen', phon:'/ˈhaɪə/', ex:'They hired three new developers.'},
+    {en:'to fire', de:'kündigen (Arbeitgeber)', phon:'/ˈfaɪə/', ex:'She got fired last week.'},
+    {en:'to resign', de:'selbst kündigen', phon:'/rɪˈzaɪn/', ex:'He resigned after two years.'},
+    {en:'a raise', de:'eine Gehaltserhöhung', phon:'/reɪz/', ex:'I\'m asking for a raise.'},
+    {en:'overtime', de:'Überstunden', phon:'/ˈəʊvətaɪm/', ex:'I had to do overtime again.'},
+    {en:'a promotion', de:'eine Beförderung', phon:'/prəˈməʊʃn/', ex:'Congratulations on your promotion!'},
+    {en:'a task', de:'eine Aufgabe', phon:'/tɑːsk/', ex:'This task is quite difficult.'},
+    {en:'to handle', de:'bewältigen, sich kümmern um', phon:'/ˈhændl/', ex:'Can you handle this client?'},
+    {en:'to launch', de:'auf den Markt bringen', phon:'/lɔːntʃ/', ex:'We launch the product in June.'},
+    {en:'a stakeholder', de:'ein Stakeholder', phon:'/ˈsteɪkhəʊldə/', ex:'We need stakeholder approval.'},
+    {en:'to be in charge of', de:'verantwortlich sein für', phon:'/ɪn tʃɑːdʒ əv/', ex:'She\'s in charge of marketing.'},
+    {en:'a headcount', de:'die Anzahl Mitarbeitender', phon:'/ˈhedkaʊnt/', ex:'Our team\'s headcount doubled.'},
+    {en:'a shift', de:'eine Schicht', phon:'/ʃɪft/', ex:'I work the night shift.'},
+    {en:'to commute', de:'pendeln', phon:'/kəˈmjuːt/', ex:'I commute by train every day.'},
+    {en:'a side project', de:'ein Nebenprojekt', phon:'/saɪd ˈprɒdʒekt/', ex:'I run a small side project.'},
+    {en:'to be swamped', de:'überlastet sein', phon:'/swɒmpt/', ex:'Sorry, I\'m swamped this week.'},
+  ]},
+  {id:'feelings', title:'Gefühle', emoji:'💛', cards:[
+    {en:'excited', de:'aufgeregt (positiv)', phon:'/ɪkˈsaɪtɪd/', ex:'I\'m excited about the trip.'},
+    {en:'nervous', de:'nervös', phon:'/ˈnɜːvəs/', ex:'I\'m nervous about the test.'},
+    {en:'proud', de:'stolz', phon:'/praʊd/', ex:'I\'m very proud of you.'},
+    {en:'embarrassed', de:'peinlich berührt', phon:'/ɪmˈbærəst/', ex:'I was so embarrassed!'},
+    {en:'overwhelmed', de:'überfordert', phon:'/ˌəʊvəˈwelmd/', ex:'I feel a bit overwhelmed.'},
+    {en:'relieved', de:'erleichtert', phon:'/rɪˈliːvd/', ex:'I\'m so relieved it\'s over.'},
+    {en:'grateful', de:'dankbar', phon:'/ˈɡreɪtfəl/', ex:'I\'m really grateful for your help.'},
+    {en:'frustrated', de:'frustriert', phon:'/frʌˈstreɪtɪd/', ex:'I\'m getting frustrated with this.'},
+    {en:'confident', de:'selbstbewusst', phon:'/ˈkɒnfɪdənt/', ex:'She looks really confident.'},
+    {en:'shy', de:'schüchtern', phon:'/ʃaɪ/', ex:'He\'s a bit shy at first.'},
+    {en:'annoyed', de:'genervt', phon:'/əˈnɔɪd/', ex:'I was annoyed by the noise.'},
+    {en:'thrilled', de:'begeistert', phon:'/θrɪld/', ex:'We\'re thrilled to hear from you.'},
+    {en:'disappointed', de:'enttäuscht', phon:'/ˌdɪsəˈpɔɪntɪd/', ex:'I was disappointed with the result.'},
+    {en:'jealous', de:'eifersüchtig', phon:'/ˈdʒeləs/', ex:'He gets jealous easily.'},
+    {en:'cheerful', de:'fröhlich', phon:'/ˈtʃɪəfl/', ex:'She\'s always cheerful.'},
+    {en:'to miss', de:'vermissen', phon:'/mɪs/', ex:'I really miss my family.'},
+    {en:'to care about', de:'sich kümmern um', phon:'/keə əˈbaʊt/', ex:'He cares deeply about his work.'},
+    {en:'to look forward to', de:'sich freuen auf', phon:'/lʊk ˈfɔːwəd tə/', ex:'I\'m looking forward to seeing you.'},
+    {en:'to feel down', de:'sich niedergeschlagen fühlen', phon:'/fiːl daʊn/', ex:'I\'ve been feeling a bit down.'},
+    {en:'to cheer up', de:'aufmuntern', phon:'/tʃɪə ʌp/', ex:'Come on, cheer up!'},
+  ]},
+  {id:'irregular', title:'Unregelmäßige Verben', emoji:'📘', cards:[
+    {en:'go – went – gone', de:'gehen', phon:'/ɡəʊ went ɡɒn/', ex:'I went to school yesterday.'},
+    {en:'see – saw – seen', de:'sehen', phon:'/siː sɔː siːn/', ex:'Have you seen the film?'},
+    {en:'eat – ate – eaten', de:'essen', phon:'/iːt eɪt ˈiːtn/', ex:'I\'ve already eaten.'},
+    {en:'take – took – taken', de:'nehmen', phon:'/teɪk tʊk ˈteɪkən/', ex:'He took my umbrella.'},
+    {en:'give – gave – given', de:'geben', phon:'/ɡɪv ɡeɪv ˈɡɪvn/', ex:'She gave me a present.'},
+    {en:'come – came – come', de:'kommen', phon:'/kʌm keɪm kʌm/', ex:'They came home late.'},
+    {en:'write – wrote – written', de:'schreiben', phon:'/raɪt rəʊt ˈrɪtn/', ex:'I\'ve written two emails.'},
+    {en:'read – read – read', de:'lesen', phon:'/riːd red red/', ex:'I read a great book last week.'},
+    {en:'buy – bought – bought', de:'kaufen', phon:'/baɪ bɔːt bɔːt/', ex:'I bought new shoes.'},
+    {en:'bring – brought – brought', de:'bringen', phon:'/brɪŋ brɔːt brɔːt/', ex:'She brought cake to the office.'},
+    {en:'think – thought – thought', de:'denken', phon:'/θɪŋk θɔːt θɔːt/', ex:'I thought you were busy.'},
+    {en:'teach – taught – taught', de:'unterrichten', phon:'/tiːtʃ tɔːt tɔːt/', ex:'My mum taught me to cook.'},
+    {en:'speak – spoke – spoken', de:'sprechen', phon:'/spiːk spəʊk ˈspəʊkən/', ex:'Have you spoken to him?'},
+    {en:'drive – drove – driven', de:'fahren', phon:'/draɪv drəʊv ˈdrɪvn/', ex:'She drove to Berlin.'},
+    {en:'drink – drank – drunk', de:'trinken', phon:'/drɪŋk dræŋk drʌŋk/', ex:'I\'ve drunk three coffees.'},
+    {en:'sing – sang – sung', de:'singen', phon:'/sɪŋ sæŋ sʌŋ/', ex:'She sang beautifully.'},
+    {en:'swim – swam – swum', de:'schwimmen', phon:'/swɪm swæm swʌm/', ex:'We swam in the lake.'},
+    {en:'know – knew – known', de:'wissen, kennen', phon:'/nəʊ njuː nəʊn/', ex:'I\'ve known him for years.'},
+    {en:'grow – grew – grown', de:'wachsen', phon:'/ɡrəʊ ɡruː ɡrəʊn/', ex:'She has grown so much!'},
+    {en:'wear – wore – worn', de:'tragen (Kleidung)', phon:'/weə wɔː wɔːn/', ex:'He wore a blue suit.'},
+  ]},
+  {id:'phrasal', title:'Phrasal Verbs', emoji:'🧩', cards:[
+    {en:'to give up', de:'aufgeben', phon:'/ɡɪv ʌp/', ex:'Don\'t give up now!'},
+    {en:'to look up', de:'nachschlagen', phon:'/lʊk ʌp/', ex:'Let me look it up.'},
+    {en:'to look after', de:'sich kümmern um', phon:'/lʊk ˈɑːftə/', ex:'She looks after her little brother.'},
+    {en:'to look forward to', de:'sich freuen auf', phon:'/lʊk ˈfɔːwəd tə/', ex:'I\'m looking forward to the holiday.'},
+    {en:'to get up', de:'aufstehen', phon:'/ɡet ʌp/', ex:'I get up at six.'},
+    {en:'to get along with', de:'sich verstehen mit', phon:'/ɡet əˈlɒŋ wɪð/', ex:'I get along well with my boss.'},
+    {en:'to get over', de:'über etwas hinwegkommen', phon:'/ɡet ˈəʊvə/', ex:'It takes time to get over a cold.'},
+    {en:'to pick up', de:'abholen; aufheben', phon:'/pɪk ʌp/', ex:'I\'ll pick you up at 7.'},
+    {en:'to turn on', de:'einschalten', phon:'/tɜːn ɒn/', ex:'Can you turn on the light?'},
+    {en:'to turn off', de:'ausschalten', phon:'/tɜːn ɒf/', ex:'Please turn off the TV.'},
+    {en:'to turn down', de:'ablehnen', phon:'/tɜːn daʊn/', ex:'They turned down my offer.'},
+    {en:'to run out of', de:'ausgehen (Vorrat)', phon:'/rʌn aʊt əv/', ex:'We\'ve run out of milk.'},
+    {en:'to show up', de:'auftauchen', phon:'/ʃəʊ ʌp/', ex:'He didn\'t show up to the meeting.'},
+    {en:'to work out', de:'funktionieren; trainieren', phon:'/wɜːk aʊt/', ex:'It all worked out in the end.'},
+    {en:'to figure out', de:'herausfinden', phon:'/ˈfɪɡə aʊt/', ex:'I can\'t figure out the problem.'},
+    {en:'to put off', de:'verschieben', phon:'/pʊt ɒf/', ex:'Don\'t put off important tasks.'},
+    {en:'to put up with', de:'etwas aushalten / tolerieren', phon:'/pʊt ʌp wɪð/', ex:'I can\'t put up with this noise.'},
+    {en:'to carry out', de:'durchführen', phon:'/ˈkæri aʊt/', ex:'We carried out several tests.'},
+    {en:'to come up with', de:'sich etwas ausdenken', phon:'/kʌm ʌp wɪð/', ex:'She came up with a great idea.'},
+    {en:'to bring up', de:'ansprechen (Thema)', phon:'/brɪŋ ʌp/', ex:'Why did you bring that up?'},
+  ]},
+  {id:'idioms', title:'Redewendungen', emoji:'🗣️', cards:[
+    {en:"It's raining cats and dogs.", de:'Es schüttet wie aus Eimern.', phon:'/ɪts ˈreɪnɪŋ.../', ex:"We can't go out — it's raining cats and dogs!"},
+    {en:"To cost an arm and a leg.", de:'Ein Vermögen kosten.', phon:'/kɒst ən ɑːm.../', ex:'This car costs an arm and a leg.'},
+    {en:"Break a leg!", de:'Toi, toi, toi! / Viel Glück!', phon:'/breɪk ə leɡ/', ex:'Break a leg in your interview!'},
+    {en:"To hit the books.", de:'Lernen (bimsen).', phon:'/hɪt ðə bʊks/', ex:'I have to hit the books tonight.'},
+    {en:"Piece of cake.", de:'Kinderleicht.', phon:'/piːs əv keɪk/', ex:'The test? Piece of cake.'},
+    {en:"Under the weather.", de:'Sich schlecht fühlen.', phon:'/ˈʌndə ðə ˈweðə/', ex:'I\'m feeling a bit under the weather.'},
+    {en:"To spill the beans.", de:'Ein Geheimnis ausplaudern.', phon:'/spɪl ðə biːnz/', ex:'Come on, spill the beans!'},
+    {en:"Once in a blue moon.", de:'Sehr selten.', phon:'/wʌns ɪn ə bluː muːn/', ex:'I see him once in a blue moon.'},
+    {en:"To be on the fence.", de:'Unentschlossen sein.', phon:'/ɒn ðə fens/', ex:'I\'m still on the fence about it.'},
+    {en:"To call it a day.", de:'Feierabend machen.', phon:'/kɔːl ɪt ə deɪ/', ex:"Let's call it a day."},
+    {en:"The ball is in your court.", de:'Du bist am Zug.', phon:'/ðə bɔːl ɪz ɪn.../', ex:'I\'ve done my part — the ball is in your court.'},
+    {en:"To cut corners.", de:'Pfusch machen / sparen.', phon:'/kʌt ˈkɔːnəz/', ex:"Don't cut corners on safety."},
+    {en:"Hit the nail on the head.", de:'Den Nagel auf den Kopf treffen.', phon:'/hɪt ðə neɪl.../', ex:"You've hit the nail on the head."},
+    {en:"Burn the midnight oil.", de:'Bis spät in die Nacht arbeiten.', phon:'/bɜːn ðə ˈmɪdnaɪt ɔɪl/', ex:'I\'m burning the midnight oil tonight.'},
+    {en:"To be a night owl.", de:'Ein Nachtmensch sein.', phon:'/naɪt aʊl/', ex:"I'm a night owl, never a morning person."},
+    {en:"Let the cat out of the bag.", de:'Ein Geheimnis verraten.', phon:'/let ðə kæt.../', ex:'Oops, I let the cat out of the bag.'},
+    {en:"Beat around the bush.", de:'Um den heißen Brei reden.', phon:'/biːt əˈraʊnd.../', ex:"Don't beat around the bush — just tell me."},
+    {en:"To get cold feet.", de:'Kalte Füße kriegen.', phon:'/ɡet kəʊld fiːt/', ex:'He got cold feet before the wedding.'},
+    {en:"Keep your chin up.", de:'Kopf hoch!', phon:'/kiːp jɔː tʃɪn ʌp/', ex:"Keep your chin up — things will get better."},
+    {en:"The early bird catches the worm.", de:'Der frühe Vogel fängt den Wurm.', phon:'/ˈɜːli bɜːd.../', ex:"I get up at 5 — the early bird catches the worm."},
+  ]},
+];
+const decksEl = $('decks');
+function renderDecks(){
+  decksEl.innerHTML='';
+  DECKS.forEach(d=>{
+    const prog = state.decks[d.id]||{};
+    const learned = Object.values(prog).filter(x=>x && x.correct>0).length;
+    const el = document.createElement('div');
+    el.className='deck';
+    el.innerHTML = `<h3>${d.emoji} ${d.title}</h3><div class="meta">${learned} / ${d.cards.length} gelernt</div>
+      <div class="progressbar" style="margin-top:6px"><div style="width:${(learned/d.cards.length*100)|0}%"></div></div>`;
+    el.addEventListener('click', ()=>openDeck(d));
+    decksEl.appendChild(el);
+  });
+}
+renderDecks();
+
+let currentDeck=null, currentQueue=[], currentCardIdx=0;
+function openDeck(d){
+  currentDeck = d;
+  $('deckTitle').textContent = d.emoji+' '+d.title;
+  $('deckMeta').textContent = `${d.cards.length} Karten`;
+  $('deckActive').classList.remove('hide');
+  $('decksCard').classList.add('hide');
+  // build queue, cards with more errors come up more often
+  const prog = state.decks[d.id]||{};
+  currentQueue = [];
+  d.cards.forEach((c,i)=>{
+    const p = prog[i]||{correct:0,wrong:0};
+    const weight = 1 + Math.max(0, p.wrong - p.correct);
+    for(let k=0;k<weight;k++) currentQueue.push(i);
+  });
+  shuffle(currentQueue);
+  currentCardIdx = 0;
+  showCard();
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; } }
+function showCard(){
+  if(currentCardIdx>=currentQueue.length){
+    $('cardFront').textContent='🎉 Runde durch!';
+    $('cardPos').textContent='';
+    $('cardPhon').textContent='Tipp „Noch nicht" oder „Konnte ich" oder geh zurück.';
+    $('cardBack').textContent='Bereit für Runde 2?';
+    $('cardExample').textContent='';
+    $('flashcard').classList.remove('flipped');
+    return;
+  }
+  const idx = currentQueue[currentCardIdx];
+  const card = currentDeck.cards[idx];
+  $('cardFront').textContent = card.en;
+  $('cardPhon').textContent = card.phon||'';
+  $('cardPos').textContent = currentDeck.title;
+  $('cardBack').textContent = card.de;
+  $('cardExample').textContent = card.ex||'';
+  $('flashcard').classList.remove('flipped');
+  const total = currentDeck.cards.length;
+  const done = (state.decks[currentDeck.id]||{});
+  const learned = Object.values(done).filter(x=>x&&x.correct>0).length;
+  $('deckProgress').style.width = (learned/total*100)+'%';
+}
+$('flashcard').addEventListener('click', ()=>$('flashcard').classList.toggle('flipped'));
+$('cardSpeak').addEventListener('click', ()=>{
+  if(!currentDeck) return;
+  const idx = currentQueue[currentCardIdx]; if(idx==null) return;
+  const c = currentDeck.cards[idx];
+  speak(c.en.replace(/\s–.*/,''));
+  if(c.ex) setTimeout(()=>speak(c.ex),1200);
+});
+function markCard(right){
+  if(!currentDeck) return;
+  const idx = currentQueue[currentCardIdx]; if(idx==null) return;
+  state.decks[currentDeck.id] = state.decks[currentDeck.id]||{};
+  const p = state.decks[currentDeck.id][idx]||{correct:0,wrong:0};
+  if(right){ p.correct++; state.stats.cards++; }
+  else { p.wrong++; }
+  state.decks[currentDeck.id][idx]=p;
+  save();
+  currentCardIdx++;
+  showCard();
+}
+$('cardRight').addEventListener('click', ()=>markCard(true));
+$('cardWrong').addEventListener('click', ()=>markCard(false));
+$('deckExit').addEventListener('click', ()=>{
+  $('deckActive').classList.add('hide'); $('decksCard').classList.remove('hide'); renderDecks();
+});
+
+/* ---------------- Translator (local) ---------------- */
+const DICT = {
+  // Articles & pronouns
+  'a':{pos:'art.', de:'ein/eine', note:"Unbestimmter Artikel vor Konsonantlaut."},
+  'an':{pos:'art.', de:'ein/eine', note:"Vor Vokallaut (an apple)."},
+  'the':{pos:'art.', de:'der/die/das', note:"Bestimmter Artikel. Oft auch 'die' (Plural)."},
+  'i':{pos:'pron.', de:'ich', note:"Immer großgeschrieben."},
+  'you':{pos:'pron.', de:'du / ihr / Sie', note:"Für Singular und Plural."},
+  'he':{pos:'pron.', de:'er'},
+  'she':{pos:'pron.', de:'sie (Sg.)'},
+  'it':{pos:'pron.', de:'es'},
+  'we':{pos:'pron.', de:'wir'},
+  'they':{pos:'pron.', de:'sie (Pl.)'},
+  'me':{pos:'pron.', de:'mich / mir'},
+  'him':{pos:'pron.', de:'ihn / ihm'},
+  'her':{pos:'pron.', de:'sie / ihr'},
+  'us':{pos:'pron.', de:'uns'},
+  'them':{pos:'pron.', de:'sie / ihnen'},
+  'my':{pos:'pron.', de:'mein(e)'},
+  'your':{pos:'pron.', de:'dein(e) / Ihr'},
+  'his':{pos:'pron.', de:'sein(e)'},
+  'our':{pos:'pron.', de:'unser(e)'},
+  'their':{pos:'pron.', de:'ihr(e) (Pl.)'},
+  'this':{pos:'pron.', de:'diese(r/s)'},
+  'that':{pos:'pron.', de:'jene(r/s) / dass', note:"Als Konjunktion: 'dass'."},
+  'these':{pos:'pron.', de:'diese (Pl.)'},
+  'those':{pos:'pron.', de:'jene (Pl.)'},
+  // be/have/do
+  'am':{pos:'verb', de:'bin', note:"Form von 'to be' (I am)."},
+  'is':{pos:'verb', de:'ist', note:"Form von 'to be' (he/she/it is)."},
+  'are':{pos:'verb', de:'bist / seid / sind', note:"Form von 'to be'."},
+  'was':{pos:'verb', de:'war', note:"Past von 'to be' (I/he/she/it was)."},
+  'were':{pos:'verb', de:'warst / wart / waren', note:"Past Plural & 'you' von 'to be'."},
+  'be':{pos:'verb', de:'sein'},
+  'been':{pos:'verb', de:'gewesen', note:"Past participle von 'be'."},
+  'being':{pos:'verb', de:'seiend', note:"-ing Form von 'be'."},
+  'have':{pos:'verb', de:'haben / habe / habt', note:"Hilfsverb für Present Perfect."},
+  'has':{pos:'verb', de:'hat', note:"3. Person Singular."},
+  'had':{pos:'verb', de:'hatte', note:"Past von 'have'."},
+  'having':{pos:'verb', de:'habend'},
+  'do':{pos:'verb', de:'machen / tun', note:"Auch Hilfsverb für Fragen & Verneinung."},
+  'does':{pos:'verb', de:'macht / tut', note:"3. Person Singular."},
+  'did':{pos:'verb', de:'machte / tat', note:"Past von 'do'. Auch für Fragen & Verneinung im Past."},
+  'done':{pos:'verb', de:'gemacht / getan', note:"Past participle."},
+  // modals
+  'can':{pos:'modal', de:'kann / können', note:"Ohne 'to': 'I can swim'."},
+  'could':{pos:'modal', de:'könnte / konnte', note:"Höflich: 'Could I ...?'"},
+  'will':{pos:'modal', de:'werde / wird', note:"Zukunft."},
+  'would':{pos:'modal', de:'würde', note:"Höflich & Konjunktiv."},
+  'should':{pos:'modal', de:'sollte'},
+  'shall':{pos:'modal', de:'soll', note:"BE: Vorschläge, 'Shall we ...?'"},
+  'must':{pos:'modal', de:'muss', note:"Starker Zwang / Vermutung."},
+  'may':{pos:'modal', de:'darf / könnte', note:"Erlaubnis oder Möglichkeit."},
+  'might':{pos:'modal', de:'könnte (vielleicht)'},
+  // prepositions
+  'in':{pos:'präp.', de:'in / drin', note:"Örtlich 'in', zeitlich Jahr/Monat/Jahreszeit."},
+  'on':{pos:'präp.', de:'auf / am', note:"Zeitlich: Wochentag/Datum (on Monday)."},
+  'at':{pos:'präp.', de:'bei / an / um', note:"Zeitlich: Uhrzeit (at 7), 'at home'."},
+  'to':{pos:'präp.', de:'zu / nach', note:"Auch für Infinitiv: 'to go'."},
+  'from':{pos:'präp.', de:'von / aus'},
+  'for':{pos:'präp.', de:'für / seit (Dauer)', note:"Zeitdauer: 'for two years'."},
+  'with':{pos:'präp.', de:'mit'},
+  'without':{pos:'präp.', de:'ohne'},
+  'about':{pos:'präp.', de:'über / ungefähr'},
+  'into':{pos:'präp.', de:'in ... hinein'},
+  'of':{pos:'präp.', de:'von / aus (Genitiv)', note:"'a cup of tea' = eine Tasse Tee."},
+  'by':{pos:'präp.', de:'bei / durch / mit (Mittel)', note:"'by car', 'by Shakespeare'."},
+  'through':{pos:'präp.', de:'durch'},
+  'over':{pos:'präp.', de:'über'},
+  'under':{pos:'präp.', de:'unter'},
+  'between':{pos:'präp.', de:'zwischen'},
+  'near':{pos:'präp.', de:'in der Nähe von'},
+  'before':{pos:'präp./konj.', de:'vor / bevor'},
+  'after':{pos:'präp./konj.', de:'nach / nachdem'},
+  'since':{pos:'präp./konj.', de:'seit', note:"Zeitpunkt: 'since Monday'. Für Dauer nimm 'for'."},
+  'until':{pos:'präp./konj.', de:'bis'},
+  'during':{pos:'präp.', de:'während'},
+  // conjunctions
+  'and':{pos:'konj.', de:'und'},
+  'or':{pos:'konj.', de:'oder'},
+  'but':{pos:'konj.', de:'aber'},
+  'because':{pos:'konj.', de:'weil'},
+  'so':{pos:'konj./adv.', de:'also / so'},
+  'if':{pos:'konj.', de:'wenn / ob'},
+  'when':{pos:'konj./adv.', de:'wann / als'},
+  'while':{pos:'konj.', de:'während'},
+  'although':{pos:'konj.', de:'obwohl'},
+  'though':{pos:'konj./adv.', de:'obwohl / allerdings'},
+  'however':{pos:'adv.', de:'allerdings'},
+  // adverbs
+  'not':{pos:'adv.', de:'nicht'},
+  'no':{pos:'adv.', de:'nein / kein'},
+  'yes':{pos:'adv.', de:'ja'},
+  'very':{pos:'adv.', de:'sehr'},
+  'really':{pos:'adv.', de:'wirklich'},
+  'also':{pos:'adv.', de:'auch'},
+  'too':{pos:'adv.', de:'auch / zu (sehr)', note:"'too much' = zu viel."},
+  'only':{pos:'adv.', de:'nur'},
+  'just':{pos:'adv.', de:'gerade / einfach'},
+  'always':{pos:'adv.', de:'immer'},
+  'never':{pos:'adv.', de:'nie'},
+  'often':{pos:'adv.', de:'oft'},
+  'sometimes':{pos:'adv.', de:'manchmal'},
+  'usually':{pos:'adv.', de:'normalerweise'},
+  'already':{pos:'adv.', de:'schon / bereits'},
+  'still':{pos:'adv.', de:'noch / immer noch'},
+  'yet':{pos:'adv.', de:'noch (in Fragen/Negation)', note:"'Have you finished yet?'"},
+  'soon':{pos:'adv.', de:'bald'},
+  'later':{pos:'adv.', de:'später'},
+  'now':{pos:'adv.', de:'jetzt'},
+  'then':{pos:'adv.', de:'dann'},
+  'here':{pos:'adv.', de:'hier'},
+  'there':{pos:'adv.', de:'dort / da', note:"'there is/are' = 'es gibt'."},
+  'where':{pos:'adv.', de:'wo / wohin'},
+  'why':{pos:'adv.', de:'warum'},
+  'how':{pos:'adv.', de:'wie'},
+  'what':{pos:'pron.', de:'was'},
+  'who':{pos:'pron.', de:'wer'},
+  'which':{pos:'pron.', de:'welche(r/s)'},
+  'today':{pos:'adv.', de:'heute'},
+  'yesterday':{pos:'adv.', de:'gestern'},
+  'tomorrow':{pos:'adv.', de:'morgen'},
+  'tonight':{pos:'adv.', de:'heute Abend'},
+  // common verbs
+  'go':{pos:'verb', de:'gehen', note:"go – went – gone (unregelmäßig)."},
+  'goes':{pos:'verb', de:'geht', note:"3. Person Singular."},
+  'going':{pos:'verb', de:'gehend', note:"'be going to' = Zukunft (werden)."},
+  'went':{pos:'verb', de:'ging', note:"Past von 'go'."},
+  'gone':{pos:'verb', de:'gegangen', note:"Past participle."},
+  'come':{pos:'verb', de:'kommen', note:"come – came – come."},
+  'came':{pos:'verb', de:'kam'},
+  'see':{pos:'verb', de:'sehen', note:"see – saw – seen."},
+  'saw':{pos:'verb', de:'sah'},
+  'seen':{pos:'verb', de:'gesehen'},
+  'look':{pos:'verb', de:'schauen / aussehen'},
+  'looking':{pos:'verb', de:'schauend'},
+  'know':{pos:'verb', de:'wissen / kennen', note:"know – knew – known."},
+  'knew':{pos:'verb', de:'wusste / kannte'},
+  'known':{pos:'verb', de:'gewusst / bekannt'},
+  'think':{pos:'verb', de:'denken', note:"think – thought – thought."},
+  'thought':{pos:'verb', de:'dachte / gedacht'},
+  'say':{pos:'verb', de:'sagen', note:"say – said – said."},
+  'said':{pos:'verb', de:'sagte / gesagt'},
+  'tell':{pos:'verb', de:'erzählen', note:"tell – told – told."},
+  'told':{pos:'verb', de:'erzählte / erzählt'},
+  'want':{pos:'verb', de:'wollen', note:"Nach 'want' kommt Infinitiv mit 'to': 'I want to go'."},
+  'need':{pos:'verb', de:'brauchen'},
+  'like':{pos:'verb', de:'mögen', note:"Nach 'like' meist -ing: 'I like swimming'."},
+  'love':{pos:'verb', de:'lieben'},
+  'hate':{pos:'verb', de:'hassen'},
+  'make':{pos:'verb', de:'machen / herstellen'},
+  'take':{pos:'verb', de:'nehmen', note:"take – took – taken."},
+  'took':{pos:'verb', de:'nahm'},
+  'taken':{pos:'verb', de:'genommen'},
+  'give':{pos:'verb', de:'geben', note:"give – gave – given."},
+  'gave':{pos:'verb', de:'gab'},
+  'get':{pos:'verb', de:'bekommen / werden', note:"'get tired' = müde werden."},
+  'got':{pos:'verb', de:'bekam / wurde'},
+  'put':{pos:'verb', de:'legen / stellen', note:"put – put – put."},
+  'find':{pos:'verb', de:'finden', note:"find – found – found."},
+  'found':{pos:'verb', de:'fand / gefunden'},
+  'work':{pos:'verb/noun', de:'arbeiten / die Arbeit'},
+  'live':{pos:'verb', de:'leben / wohnen'},
+  'living':{pos:'verb', de:'lebend / wohnend'},
+  'eat':{pos:'verb', de:'essen'},
+  'drink':{pos:'verb', de:'trinken'},
+  'read':{pos:'verb', de:'lesen'},
+  'write':{pos:'verb', de:'schreiben'},
+  'speak':{pos:'verb', de:'sprechen'},
+  'listen':{pos:'verb', de:'zuhören', note:"immer mit 'to': 'listen to music'."},
+  'hear':{pos:'verb', de:'hören'},
+  'learn':{pos:'verb', de:'lernen'},
+  'teach':{pos:'verb', de:'unterrichten'},
+  'help':{pos:'verb', de:'helfen'},
+  'try':{pos:'verb', de:'versuchen', note:"'try to do' vs. 'try doing' – anderer Sinn."},
+  'start':{pos:'verb', de:'anfangen / starten'},
+  'begin':{pos:'verb', de:'beginnen', note:"begin – began – begun."},
+  'finish':{pos:'verb', de:'fertig sein / beenden'},
+  'stop':{pos:'verb', de:'anhalten / aufhören'},
+  'wait':{pos:'verb', de:'warten', note:"'wait for' = auf etwas warten."},
+  'meet':{pos:'verb', de:'treffen', note:"meet – met – met."},
+  'buy':{pos:'verb', de:'kaufen'},
+  'sell':{pos:'verb', de:'verkaufen'},
+  'open':{pos:'verb/adj.', de:'öffnen / offen'},
+  'close':{pos:'verb/adj.', de:'schließen / nah'},
+  'play':{pos:'verb', de:'spielen', note:"'play football', 'play the piano' (mit 'the' bei Instrumenten)."},
+  'run':{pos:'verb', de:'laufen / rennen', note:"run – ran – run."},
+  'ran':{pos:'verb', de:'lief / rannte'},
+  'walk':{pos:'verb', de:'gehen (zu Fuß)'},
+  'sit':{pos:'verb', de:'sitzen'},
+  'stand':{pos:'verb', de:'stehen'},
+  'sleep':{pos:'verb', de:'schlafen', note:"sleep – slept – slept."},
+  'feel':{pos:'verb', de:'fühlen'},
+  'ask':{pos:'verb', de:'fragen'},
+  'answer':{pos:'verb', de:'antworten'},
+  // common nouns
+  'time':{pos:'noun', de:'Zeit / Mal'},
+  'year':{pos:'noun', de:'Jahr'},
+  'years':{pos:'noun', de:'Jahre'},
+  'day':{pos:'noun', de:'Tag'},
+  'days':{pos:'noun', de:'Tage'},
+  'week':{pos:'noun', de:'Woche'},
+  'month':{pos:'noun', de:'Monat'},
+  'hour':{pos:'noun', de:'Stunde'},
+  'minute':{pos:'noun', de:'Minute'},
+  'morning':{pos:'noun', de:'Morgen', note:"'in the morning' – mit Artikel."},
+  'afternoon':{pos:'noun', de:'Nachmittag'},
+  'evening':{pos:'noun', de:'Abend'},
+  'night':{pos:'noun', de:'Nacht', note:"'at night' – ohne Artikel."},
+  'home':{pos:'noun/adv.', de:'Zuhause / nach Hause', note:"'at home', 'go home' (ohne 'to')."},
+  'house':{pos:'noun', de:'Haus'},
+  'school':{pos:'noun', de:'Schule'},
+  'work':{pos:'noun', de:'Arbeit'},
+  'job':{pos:'noun', de:'Job / Stelle'},
+  'city':{pos:'noun', de:'Stadt'},
+  'country':{pos:'noun', de:'Land'},
+  'people':{pos:'noun', de:'Leute / Menschen', note:"Immer Plural – kein 's'."},
+  'person':{pos:'noun', de:'Person'},
+  'friend':{pos:'noun', de:'Freund:in'},
+  'friends':{pos:'noun', de:'Freunde / Freundinnen'},
+  'family':{pos:'noun', de:'Familie'},
+  'child':{pos:'noun', de:'Kind', note:"Plural: children."},
+  'children':{pos:'noun', de:'Kinder'},
+  'man':{pos:'noun', de:'Mann'},
+  'woman':{pos:'noun', de:'Frau'},
+  'thing':{pos:'noun', de:'Sache / Ding'},
+  'food':{pos:'noun', de:'Essen'},
+  'water':{pos:'noun', de:'Wasser'},
+  'coffee':{pos:'noun', de:'Kaffee'},
+  'tea':{pos:'noun', de:'Tee'},
+  'book':{pos:'noun', de:'Buch'},
+  'car':{pos:'noun', de:'Auto'},
+  'train':{pos:'noun', de:'Zug'},
+  'bus':{pos:'noun', de:'Bus'},
+  'money':{pos:'noun', de:'Geld'},
+  'problem':{pos:'noun', de:'Problem'},
+  'question':{pos:'noun', de:'Frage'},
+  'idea':{pos:'noun', de:'Idee'},
+  'name':{pos:'noun', de:'Name'},
+  'story':{pos:'noun', de:'Geschichte'},
+  'life':{pos:'noun', de:'Leben'},
+  // adjectives
+  'good':{pos:'adj.', de:'gut', note:"Komp.: better, Sup.: best."},
+  'better':{pos:'adj.', de:'besser'},
+  'best':{pos:'adj.', de:'beste(r/s)'},
+  'bad':{pos:'adj.', de:'schlecht', note:"Komp.: worse, Sup.: worst."},
+  'worse':{pos:'adj.', de:'schlechter'},
+  'worst':{pos:'adj.', de:'schlechteste(r/s)'},
+  'big':{pos:'adj.', de:'groß'},
+  'small':{pos:'adj.', de:'klein'},
+  'new':{pos:'adj.', de:'neu'},
+  'old':{pos:'adj.', de:'alt'},
+  'young':{pos:'adj.', de:'jung'},
+  'nice':{pos:'adj.', de:'nett'},
+  'kind':{pos:'adj./noun', de:'nett / Art'},
+  'happy':{pos:'adj.', de:'glücklich'},
+  'sad':{pos:'adj.', de:'traurig'},
+  'tired':{pos:'adj.', de:'müde'},
+  'hungry':{pos:'adj.', de:'hungrig'},
+  'thirsty':{pos:'adj.', de:'durstig'},
+  'easy':{pos:'adj.', de:'leicht / einfach'},
+  'hard':{pos:'adj./adv.', de:'schwer / hart'},
+  'difficult':{pos:'adj.', de:'schwierig'},
+  'fast':{pos:'adj./adv.', de:'schnell'},
+  'slow':{pos:'adj.', de:'langsam'},
+  'beautiful':{pos:'adj.', de:'schön'},
+  'ugly':{pos:'adj.', de:'hässlich'},
+  'cold':{pos:'adj.', de:'kalt'},
+  'hot':{pos:'adj.', de:'heiß'},
+  'warm':{pos:'adj.', de:'warm'},
+  'cool':{pos:'adj.', de:'kühl / cool'},
+  'right':{pos:'adj./adv.', de:'richtig / rechts', note:"'you are right' = du hast recht."},
+  'wrong':{pos:'adj.', de:'falsch'},
+  'left':{pos:'adj./adv.', de:'links', note:"Auch: 'left' als Past von 'leave' (verlassen)."},
+  // numbers
+  'one':{pos:'num.', de:'eins'},
+  'two':{pos:'num.', de:'zwei'},
+  'three':{pos:'num.', de:'drei'},
+  'four':{pos:'num.', de:'vier'},
+  'five':{pos:'num.', de:'fünf'},
+  'six':{pos:'num.', de:'sechs'},
+  'seven':{pos:'num.', de:'sieben'},
+  'eight':{pos:'num.', de:'acht'},
+  'nine':{pos:'num.', de:'neun'},
+  'ten':{pos:'num.', de:'zehn'},
+  'first':{pos:'num.', de:'erste(r/s)'},
+  'second':{pos:'num.', de:'zweite(r/s) / Sekunde'},
+  'last':{pos:'adj.', de:'letzte(r/s)'},
+  'next':{pos:'adj.', de:'nächste(r/s)'},
+  // greetings etc.
+  'hello':{pos:'interj.', de:'hallo'},
+  'hi':{pos:'interj.', de:'hi'},
+  'bye':{pos:'interj.', de:'tschüss'},
+  'goodbye':{pos:'interj.', de:'auf Wiedersehen'},
+  'please':{pos:'adv.', de:'bitte'},
+  'thanks':{pos:'noun', de:'Danke'},
+  'thank':{pos:'verb', de:'danken'},
+  'sorry':{pos:'adj.', de:'tut mir leid'},
+  'ok':{pos:'adv.', de:'okay'},
+  'okay':{pos:'adv.', de:'okay'},
+  'excuse':{pos:'verb/noun', de:'entschuldigen / Ausrede', note:"'Excuse me' = Entschuldigung (Aufmerksamkeit holen)."},
+};
+
+// Simple pattern-based sentence translation (common structures)
+function translateSentence(en){
+  const s = en.trim().replace(/\s+/g,' ');
+  if(!s) return '';
+  // Try a few patterns for a usable German draft
+  const patterns = [
+    [/^how are you\??$/i, 'Wie geht es dir?'],
+    [/^what('?s| is) your name\??$/i, 'Wie heißt du?'],
+    [/^my name is (.+)\.?$/i, (m,n)=>`Ich heiße ${n}.`],
+    [/^i am (\d+) years old\.?$/i, (m,n)=>`Ich bin ${n} Jahre alt.`],
+    [/^i am (.+)\.?$/i, (m,x)=>`Ich bin ${x}.`],
+    [/^i'm (.+)\.?$/i, (m,x)=>`Ich bin ${x}.`],
+    [/^i like (.+)\.?$/i, (m,x)=>`Ich mag ${x}.`],
+    [/^i love (.+)\.?$/i, (m,x)=>`Ich liebe ${x}.`],
+    [/^i don'?t (like|love) (.+)\.?$/i, (m,v,x)=>`Ich ${v==='like'?'mag':'liebe'} ${x} nicht.`],
+    [/^i have (.+)\.?$/i, (m,x)=>`Ich habe ${x}.`],
+    [/^i don'?t have (.+)\.?$/i, (m,x)=>`Ich habe ${x} nicht / kein ${x}.`],
+    [/^i want to (.+)\.?$/i, (m,x)=>`Ich will ${x}.`],
+    [/^i need (.+)\.?$/i, (m,x)=>`Ich brauche ${x}.`],
+    [/^i can (.+)\.?$/i, (m,x)=>`Ich kann ${x}.`],
+    [/^where (is|are) (.+)\??$/i, (m,_v,x)=>`Wo ist/sind ${x}?`],
+    [/^how much (is|are) (.+)\??$/i, (m,_v,x)=>`Wie viel kostet/kosten ${x}?`],
+    [/^can i (.+)\??$/i, (m,x)=>`Kann ich ${x}?`],
+    [/^could i (.+)\??$/i, (m,x)=>`Könnte ich ${x}?`],
+    [/^do you (.+)\??$/i, (m,x)=>`${x[0].toUpperCase()+x.slice(1)}?`],
+    [/^i have been (.+) for (.+)\.?$/i, (m,a,b)=>`Ich ${a.replace(/ing$/,'e')} seit ${b}.`],
+    [/^it'?s (.+)\.?$/i, (m,x)=>`Es ist ${x}.`],
+    [/^there is (.+)\.?$/i, (m,x)=>`Es gibt ${x}.`],
+    [/^there are (.+)\.?$/i, (m,x)=>`Es gibt ${x}.`],
+    [/^thank you( very much)?\.?$/i, 'Danke schön.'],
+    [/^please\.?$/i, 'Bitte.'],
+    [/^nice to meet you\.?$/i, 'Schön, dich kennenzulernen.'],
+  ];
+  for(const [re, out] of patterns){
+    const m = s.match(re);
+    if(m) return typeof out==='function' ? out(...m) : out;
+  }
+  // Fallback: word-by-word with light grammar
+  const tokens = s.split(/(\b)/).filter(t=>t.trim()!=='');
+  const out = tokens.map(t=>{
+    if(/^[.,!?;:]$/.test(t)) return t;
+    const w = t.toLowerCase();
+    const hit = DICT[w];
+    if(hit){
+      const main = hit.de.split('/')[0].trim();
+      return main.split(' ')[0];
+    }
+    return t;
+  });
+  return '🔸 Ungefähre Übersetzung: ' + out.join(' ').replace(/\s+([.,!?;:])/g,'$1');
+}
+
+function analyzeSentence(en){
+  const grammar = [];
+  const low = en.toLowerCase();
+  // Tense hints
+  if(/\bhave\s+\w+ed\b/.test(low) || /\bhas\s+\w+ed\b/.test(low) || /\bhave been\b/.test(low))
+    grammar.push('Present Perfect (have/has + Partizip): bezeichnet eine Handlung mit Bezug zur Gegenwart.');
+  if(/\b(am|is|are)\s+\w+ing\b/.test(low))
+    grammar.push('Present Continuous (be + -ing): etwas passiert jetzt gerade oder vorübergehend.');
+  if(/\b(was|were)\s+\w+ing\b/.test(low))
+    grammar.push('Past Continuous (was/were + -ing): eine Handlung war im Gange.');
+  if(/\bwill\s+\w+\b/.test(low) || /\b(going to)\b/.test(low))
+    grammar.push("Zukunft: 'will' = spontane Entscheidung, 'going to' = geplant.");
+  if(/\b(if)\b.+\b(would|could|might)\b/.test(low))
+    grammar.push('Conditional (if + Past → would + Infinitiv): hypothetische Situation.');
+  if(/\bfor\s+\d/.test(low)) grammar.push("'for' + Zeitraum (seit wann → wie lange).");
+  if(/\bsince\b/.test(low))  grammar.push("'since' + Zeitpunkt (seit wann es angefangen hat).");
+  if(/\b(don't|doesn't|didn't)\b/.test(low)) grammar.push("Verneinung mit 'do/does/did + not'.");
+  return grammar;
+}
+
+$('translateBtn').addEventListener('click', ()=>{
+  const en = $('translateIn').value;
+  if(!en.trim()) return;
+  const de = translateSentence(en);
+  $('translationOut').textContent = de;
+  const grid = $('wordgrid'); grid.innerHTML='';
+  const tokens = en.split(/\s+/).map(t=>t.replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g,'')).filter(Boolean);
+  tokens.forEach(tok=>{
+    const key = tok.toLowerCase();
+    const hit = DICT[key] || DICT[key.replace(/s$/,'')] || DICT[key.replace(/ing$/,'')] || DICT[key.replace(/ed$/,'')];
+    const el = document.createElement('div');
+    el.className='wordchip';
+    el.innerHTML = `<div class="pos">${hit?.pos||'—'}</div>
+      <div class="w">${escapeHtml(tok)}</div>
+      <div class="meaning">${hit?escapeHtml(hit.de):'<span class="muted">nicht im Mini-Wörterbuch</span>'}</div>
+      ${hit?.note?`<div class="note">💡 ${escapeHtml(hit.note)}</div>`:''}`;
+    el.addEventListener('click', ()=>speak(tok));
+    grid.appendChild(el);
+  });
+  const g = analyzeSentence(en);
+  $('grammarNotes').innerHTML = g.length ? ('• '+g.map(escapeHtml).join('<br>• ')) : 'Keine besonderen Strukturen erkannt.';
+  $('translateResult').classList.remove('hide');
+});
+$('translateSpeak').addEventListener('click', ()=>{
+  const v = $('translateIn').value.trim();
+  if(v) speak(v);
+});
+$('translateMic').addEventListener('click', ()=>startMic(t=>{ $('translateIn').value = t; $('translateBtn').click(); }, $('translateMic')));
+$('translateSwap').addEventListener('click', ()=>{
+  alert('Der lokale Übersetzer ist für Englisch → Deutsch optimiert. Für EN→DE funktionieren auch Sätze wie „I have been living here for two years."');
+});
+
+/* ---------------- Progress ---------------- */
+function updateStats(){
+  $('statSpoken').textContent = state.stats.spoken||0;
+  $('statCards').textContent = state.stats.cards||0;
+  $('statRP').textContent = state.stats.rp||0;
+}
+function renderProgress(){
+  updateStats();
+  const el = $('deckStatus'); el.innerHTML='';
+  DECKS.forEach(d=>{
+    const prog = state.decks[d.id]||{};
+    const learned = Object.values(prog).filter(x=>x && x.correct>0).length;
+    const row = document.createElement('div');
+    row.style.margin='6px 0';
+    row.innerHTML = `<div class="row" style="justify-content:space-between"><div>${d.emoji} ${d.title}</div><div class="muted">${learned}/${d.cards.length}</div></div>
+      <div class="progressbar"><div style="width:${(learned/d.cards.length*100)|0}%"></div></div>`;
+    el.appendChild(row);
+  });
+}
+$('resetProgress').addEventListener('click', ()=>{
+  if(confirm('Wirklich den gesamten Fortschritt löschen?')){
+    state = {level:'A2', stats:{spoken:0,cards:0,rp:0}, decks:{}};
+    save(); renderProgress(); renderDecks();
+  }
+});
+
+/* ---------------- Boot ---------------- */
+updateStats();
+// Set saved level
+if(state.level){
+  document.querySelectorAll('#levelSeg button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.level===state.level);
+  });
+}
+// Kickoff tutor
+setTimeout(kickoff, 300);
+</script>
+</body>
+</html>
