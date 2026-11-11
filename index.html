@@ -130,6 +130,15 @@
 
 <main>
 
+<div id="fileWarn" class="card hide" style="border-color:var(--warn);background:rgba(180,83,9,.08)">
+  <h3 style="color:var(--warn);margin-bottom:6px">⚠️ Du hast die App als lokale Datei geöffnet</h3>
+  <div class="muted" style="color:var(--ink)">Browser erlauben das Mikrofon auf <code>file://</code>-URLs nicht dauerhaft. Darum fragt es jedes Mal neu.</div>
+  <div style="margin-top:10px"><b>Schnellste Lösung:</b> öffne cmd / PowerShell im Ordner mit der Datei und starte einen Mini-Server:</div>
+  <div style="margin-top:6px"><kbd>python -m http.server 8000</kbd> &nbsp; (oder mit Node: <kbd>npx serve .</kbd>)</div>
+  <div style="margin-top:6px">Dann im Browser öffnen: <kbd>http://localhost:8000</kbd></div>
+  <div class="muted" style="margin-top:10px">Noch besser: GitHub Pages aktivieren – siehe Chat.</div>
+</div>
+
 <!-- TUTOR -->
 <section class="view active" id="view-tutor">
   <div class="card">
@@ -344,20 +353,44 @@ function speak(text, opts={}){
   u.pitch = opts.pitch ?? 1.0;
   speechSynthesis.speak(u);
 }
+let _rec = null;
+let _recCb = null;
+let _recBtn = null;
+function initRecognition(){
+  if(_rec || !SpeechRec) return _rec;
+  _rec = new SpeechRec();
+  _rec.lang = 'en-US';
+  _rec.interimResults = false;
+  _rec.continuous = false;
+  _rec.maxAlternatives = 1;
+  _rec.onresult = (e)=>{
+    const t = e.results[0][0].transcript;
+    if(_recCb) _recCb(t);
+  };
+  _rec.onerror = (e)=>{
+    _recBtn?.classList.remove('listening');
+    if(e.error==='not-allowed' || e.error==='service-not-allowed'){
+      alert("Der Browser lässt das Mikrofon nicht zu.\n\nTipp: Die App MUSS über http://localhost oder https:// laufen, nicht als lokale Datei (file://).\n\nSchnelle Lösung: siehe Warnhinweis oben in der App.");
+    }else if(e.error==='no-speech'){
+      // ignore silently
+    }else if(e.error==='network'){
+      alert("Netzwerkfehler bei der Spracherkennung. Die Erkennung läuft über Google-Server – das klappt auf file:// nicht. Bitte über localhost oder https öffnen.");
+    }
+  };
+  _rec.onend = ()=>{ _recBtn?.classList.remove('listening'); };
+  return _rec;
+}
 function startMic(onResult, btn){
   if(!SpeechRec){ alert('Dein Browser unterstützt keine Sprachaufnahme. Probier Chrome oder Edge.'); return null; }
-  const r = new SpeechRec();
-  r.lang = 'en-US';
-  r.interimResults = false;
-  r.maxAlternatives = 1;
-  r.onresult = (e)=>{
-    const t = e.results[0][0].transcript;
-    onResult(t);
-  };
-  r.onerror = ()=>{ btn?.classList.remove('listening'); };
-  r.onend = ()=>{ btn?.classList.remove('listening'); };
+  const r = initRecognition();
+  _recCb = onResult;
+  _recBtn = btn;
+  try{ r.abort(); }catch{}
   btn?.classList.add('listening');
-  r.start();
+  try{ r.start(); }catch(e){
+    btn?.classList.remove('listening');
+    console.warn(e);
+  }
   return r;
 }
 
@@ -1419,6 +1452,7 @@ $('resetProgress').addEventListener('click', ()=>{
 });
 
 /* ---------------- Boot ---------------- */
+if(location.protocol==='file:'){ $('fileWarn').classList.remove('hide'); }
 updateStats();
 // Set saved level
 if(state.level){
