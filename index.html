@@ -180,13 +180,16 @@
   <div class="card">
     <div class="chat" id="chat"></div>
     <div class="microw">
-      <button class="mic" id="micBtn" title="Mikrofon an/aus">
+      <button class="mic" id="micBtn" title="Englisch per Mikro">
         <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12z"/></svg>
       </button>
-      <input id="tutorInput" placeholder="…oder tipp hier auf Englisch und drück Enter"/>
+      <button class="mic" id="micDe" title="Frage auf Deutsch stellen" style="background:#b45309;width:48px;height:48px">
+        <span style="font-size:14px;font-weight:700">DE</span>
+      </button>
+      <input id="tutorInput" placeholder="…oder tipp hier (Englisch zum Üben, Deutsch für Fragen wie 'Was heißt sorry?')"/>
       <button class="btn" id="tutorSend">Senden</button>
     </div>
-    <div class="muted" style="margin-top:8px" id="micHint">Tipp: Erlaube dem Browser den Mikrofon-Zugriff. Funktioniert am besten in Chrome & Edge.</div>
+    <div class="muted" style="margin-top:8px" id="micHint">🎙️ <b>Grünes Mikro</b> = Englisch üben · 🧡 <b>DE-Mikro</b> = auf Deutsch fragen (z.B. „Was heißt richest?")</div>
   </div>
 </section>
 
@@ -365,17 +368,20 @@ function speak(text, opts={}){
 let _rec = null;
 let _recCb = null;
 let _recBtn = null;
-function initRecognition(){
-  if(_rec || !SpeechRec) return _rec;
-  _rec = new SpeechRec();
-  _rec.lang = 'en-US';
-  _rec.interimResults = false;
-  _rec.continuous = false;
-  _rec.maxAlternatives = 1;
-  _rec.onresult = (e)=>{
-    const t = e.results[0][0].transcript;
-    if(_recCb) _recCb(t);
-  };
+function initRecognition(lang){
+  if(!SpeechRec) return null;
+  if(!_rec){
+    _rec = new SpeechRec();
+    _rec.interimResults = false;
+    _rec.continuous = false;
+    _rec.maxAlternatives = 1;
+    _rec.onresult = (e)=>{
+      const t = e.results[0][0].transcript;
+      if(_recCb) _recCb(t);
+    };
+    _rec._errorBound = false;
+  }
+  _rec.lang = lang || 'en-US';
   _rec.onerror = (e)=>{
     _recBtn?.classList.remove('listening');
     if(e.error==='not-allowed' || e.error==='service-not-allowed'){
@@ -394,9 +400,9 @@ function initRecognition(){
   _rec.onend = ()=>{ _recBtn?.classList.remove('listening'); };
   return _rec;
 }
-function startMic(onResult, btn){
+function startMic(onResult, btn, lang){
   if(!SpeechRec){ alert('Dein Browser unterstützt keine Sprachaufnahme. Probier Chrome oder Edge.'); return null; }
-  const r = initRecognition();
+  const r = initRecognition(lang || 'en-US');
   _recCb = onResult;
   _recBtn = btn;
   try{ r.abort(); }catch{}
@@ -675,20 +681,102 @@ function isGerman(text){
   return deWords.test(t);
 }
 
+// Umgekehrtes Wörterbuch: Deutsch -> Englisch aufbauen aus DICT + Karteikarten
+let _deToEn = null;
+function buildDeToEn(){
+  if(_deToEn) return _deToEn;
+  _deToEn = {};
+  for(const [en, info] of Object.entries(DICT)){
+    const parts = info.de.split(/[\/,;]/).map(s=>s.trim().toLowerCase()).filter(Boolean);
+    for(const p of parts){
+      const clean = p.replace(/\s*\(.*?\)\s*/g,'').trim();
+      if(clean && !_deToEn[clean]) _deToEn[clean] = {en, pos:info.pos, note:info.note};
+    }
+  }
+  for(const deck of DECKS){
+    for(const c of deck.cards){
+      const key = c.de.toLowerCase().replace(/^(der|die|das|ein|eine)\s+/,'').trim();
+      if(key && !_deToEn[key]) _deToEn[key] = {en:c.en, pos:deck.title, note:c.ex};
+    }
+  }
+  return _deToEn;
+}
+function lookupEn(word){
+  const w = word.toLowerCase().trim().replace(/[.,!?;:"']/g,'');
+  // Direkter Treffer im englischen Wörterbuch
+  if(DICT[w]) return {type:'en', word:w, de:DICT[w].de, pos:DICT[w].pos, note:DICT[w].note};
+  if(DICT[w.replace(/s$/,'')]){ const k=w.replace(/s$/,''); return {type:'en', word:k, de:DICT[k].de, pos:DICT[k].pos, note:"Plural von '"+k+"'"}; }
+  if(DICT[w.replace(/ing$/,'')]){ const k=w.replace(/ing$/,''); return {type:'en', word:k, de:DICT[k].de, pos:DICT[k].pos, note:"-ing-Form von '"+k+"'"}; }
+  if(DICT[w.replace(/ed$/,'')]){ const k=w.replace(/ed$/,''); return {type:'en', word:k, de:DICT[k].de, pos:DICT[k].pos, note:"Past/Partizip von '"+k+"'"}; }
+  // Karteikarten durchsuchen (ganze Phrasen und Teilwörter)
+  for(const deck of DECKS){
+    for(const c of deck.cards){
+      if(c.en.toLowerCase().replace(/^to\s+/,'').includes(w)) return {type:'card', word:c.en, de:c.de, pos:deck.title, note:c.ex};
+    }
+  }
+  // Deutsch → Englisch
+  const de2en = buildDeToEn();
+  if(de2en[w]) return {type:'de', word:w, en:de2en[w].en, pos:de2en[w].pos, note:de2en[w].note};
+  // Teiltreffer DE
+  for(const [de, info] of Object.entries(de2en)){
+    if(de.includes(w) || w.includes(de)) return {type:'de', word:de, en:info.en, pos:info.pos, note:info.note};
+  }
+  return null;
+}
+
 function germanHelper(text){
-  // Erkenne Absicht und gib passende Hilfe auf Deutsch
-  const t = text.toLowerCase();
-  if(/\b(bedeutet|heißt|was ist|was heißt|übersetz|erklär|verstehe nicht|nicht verstanden|was war|was hast du)\b/.test(t)){
-    return `💡 Kein Problem! Klick auf den Button **🇩🇪 Auf Deutsch zeigen** unter meiner letzten Nachricht, dann siehst du die Übersetzung. Oder nutze den Tab **🔤 Übersetzer** oben – da kannst du jeden englischen Satz einfügen und ich erkläre dir jedes Wort einzeln.\n\nAntwort einfach auf Englisch – versuch es so gut du kannst, ich korrigiere dich!`;
+  const t = text.trim().toLowerCase().replace(/[?!.]+$/,'');
+  // Muster: "was heißt X (auf englisch)"
+  let m = t.match(/^(?:was\s+(?:heißt|heisst|bedeutet|ist)|wie\s+(?:sagt?\s+man|sage ich|übersetze ich|heißt|heisst))\s+['„"]?(.+?)['"'"]?(?:\s+auf\s+(?:englisch|english|deutsch))?$/);
+  if(!m){ m = t.match(/^(?:übersetze?|translate?)\s+(.+)$/); }
+  if(m){
+    const q = m[1].replace(/^["„']|["'"]$/g,'').trim();
+    const hit = lookupEn(q);
+    if(hit){
+      if(hit.type==='en' || hit.type==='card'){
+        return `💡 **${hit.word}** bedeutet auf Deutsch: **${hit.de}**\n_${hit.pos}_${hit.note?`\n📝 ${hit.note}`:''}`;
+      } else {
+        return `💡 „${hit.word}" heißt auf Englisch: **${hit.en}**\n_${hit.pos}_${hit.note?`\n📝 ${hit.note}`:''}`;
+      }
+    }
+    return `💡 „${q}" habe ich nicht im Mini-Wörterbuch. Probier es im Tab **🔤 Übersetzer** – da gebe ich dir für jeden eingegebenen Satz eine Wort-für-Wort-Erklärung.`;
+  }
+  // "wie spricht man X aus"
+  m = t.match(/^wie\s+(?:spricht\s+man|sagt\s+man|sagt\s+ich)\s+(.+?)(?:\s+aus)?$/);
+  if(m){
+    const q = m[1].replace(/^["„']|["'"]$/g,'').trim();
+    try{ speak(q); }catch{}
+    return `💡 Ich spreche **„${q}"** gerade für dich vor. 🔊\nAuch im Tab **🔤 Übersetzer** kannst du jedes Wort anklicken zum Vorsprechen.`;
+  }
+  // "was hast du gesagt / was war das"
+  if(/\b(was\s+hast\s+du\s+gesagt|was\s+war\s+das|wiederhole|nochmal|nocheinmal|repeat)\b/.test(t)){
+    const lastBot = [...document.querySelectorAll('#chat .bubble.bot .en')].pop();
+    if(lastBot){
+      speak(lastBot.textContent);
+      const de = germanFor(lastBot.textContent);
+      return `🔊 Ich wiederhole: *${lastBot.textContent}*\n\n💡 Auf Deutsch: **${de || '(keine Übersetzung vorhanden)'}**`;
+    }
+    return `💡 Klick unter meiner Nachricht auf den Button **🇩🇪 Auf Deutsch zeigen**.`;
+  }
+  // Allgemeine Nachfragen
+  if(/\b(bedeutet|heißt|verstehe nicht|nicht verstanden|was war|was hast du)\b/.test(t)){
+    return `💡 Klick auf **🇩🇪 Auf Deutsch zeigen** unter meiner letzten Nachricht. Wenn du ein konkretes Wort meinst, frag z.B.: *„Was heißt richest?"* – dann sage ich dir die Bedeutung.`;
   }
   if(/\b(kannst du deutsch|sprichst du deutsch|auf deutsch)\b/.test(t)){
-    return `💡 Ja, ich verstehe dich auf Deutsch, antworte aber absichtlich auf Englisch – so trainierst du am meisten. Wenn du etwas nicht verstehst, klick einfach auf **🇩🇪 Auf Deutsch zeigen** unter meiner Nachricht. Oder setz oben den Haken bei **Deutsche Hilfe immer zeigen**, dann steht die Übersetzung automatisch dabei.\n\nJetzt los: antworte auf Englisch, auch mit Fehlern. Das ist der ganze Sinn. 💪`;
+    return `💡 Ja, ich verstehe Deutsch, antworte aber im Englisch-Chat absichtlich auf Englisch – so übst du am meisten. Für Übersetzungen frag z.B.: *„Was heißt happy?"* oder *„Wie sagt man 'danke' auf Englisch?"*`;
   }
-  if(/\b(hilfe|help|wie geht|was soll ich|ich weiss nicht|ich weiß nicht)\b/.test(t)){
-    return `💡 So funktioniert es: Ich (der Tutor) stelle dir Fragen auf Englisch. Du antwortest auf Englisch – per Tastatur oder Mikrofon. Deine Fehler korrigiere ich sofort. Wenn du eine Frage nicht verstehst, klick auf **🇩🇪 Auf Deutsch zeigen** unter meiner Nachricht.\n\nBeispiel: Ich frage *How are you today?* → du antwortest *I am fine, thanks* oder *I am tired because I worked a lot*.\n\nProbier es jetzt!`;
+  if(/\b(hilfe|help|wie geht|was soll ich|ich weiss nicht|ich weiß nicht|verstehe nichts)\b/.test(t)){
+    return `💡 **So funktioniert es:**\n• Grünes Mikro oder Tippen = du antwortest auf Englisch\n• DE-Mikro = du fragst auf Deutsch (z.B. „Was heißt happy?")\n• Button **🇩🇪 Auf Deutsch zeigen** unter jeder Nachricht = Übersetzung\n• Tab **🔤 Übersetzer** = jeden Satz Wort für Wort erklären\n\nBeispiel: Ich frage *How are you today?* → du antwortest *I am fine, thanks*.`;
   }
-  // Generische Erklärung
-  return `💡 Du hast auf Deutsch geschrieben. Für den besten Lerneffekt antworte bitte auf **Englisch** – auch mit Fehlern, die korrigiere ich.\n\nWenn du meine letzte Nachricht nicht verstanden hast: Klick auf **🇩🇪 Auf Deutsch zeigen** darunter. Oder setz oben den Haken bei **Deutsche Hilfe immer zeigen**.`;
+  // Könnte eine deutsche Vokabel sein, die direkt übersetzt werden soll
+  const direct = lookupEn(t);
+  if(direct){
+    if(direct.type==='de'){
+      return `💡 „${direct.word}" heißt auf Englisch: **${direct.en}**\n_${direct.pos}_${direct.note?`\n📝 ${direct.note}`:''}`;
+    }
+    return `💡 **${direct.word}** = **${direct.de}**\n_${direct.pos}_${direct.note?`\n📝 ${direct.note}`:''}`;
+  }
+  return `💡 Du hast auf Deutsch geschrieben. Ich habe die Frage so nicht verstanden.\n\nSo kannst du mich fragen:\n• *„Was heißt happy?"* → Übersetzung\n• *„Wie sagt man 'danke' auf Englisch?"* → Übersetzung andersrum\n• *„Wie spricht man 'through' aus?"* → Ich spreche es vor\n• *„Was hast du gesagt?"* → letzte Antwort wiederholen und übersetzen\n\nOder klick **🇩🇪 Auf Deutsch zeigen** unter meiner letzten Nachricht.`;
 }
 
 function handleTutor(text){
@@ -725,7 +813,11 @@ $('tutorInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ handleTuto
 $('tutorReset').addEventListener('click', ()=>{ chatEl.innerHTML=''; turn=0; kickoff(); });
 $('micBtn').addEventListener('click', ()=>{
   const btn = $('micBtn');
-  startMic(t=>handleTutor(t), btn);
+  startMic(t=>handleTutor(t), btn, 'en-US');
+});
+$('micDe').addEventListener('click', ()=>{
+  const btn = $('micDe');
+  startMic(t=>handleTutor(t), btn, 'de-DE');
 });
 document.querySelectorAll('#levelSeg button').forEach(b=>{
   b.addEventListener('click', ()=>{
