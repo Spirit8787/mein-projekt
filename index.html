@@ -55,9 +55,11 @@
   .bubble.bot{align-self:flex-start;background:var(--chip);color:var(--ink);border-bottom-left-radius:4px}
   .bubble .en{font-size:15px}
   .bubble .de{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
-  .bubble .helpbtn{background:transparent;border:1px solid var(--border);border-radius:999px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--muted);margin-top:6px}
-  .bubble .helpbtn:hover{background:var(--surface)}
-  .bubble .de-help{font-size:13px;color:var(--ink);margin-top:6px;padding:6px 10px;background:var(--surface);border-radius:8px;border-left:3px solid var(--accent)}
+  .bubble .helpbtn{background:var(--surface);border:1px solid var(--accent);border-radius:999px;font-size:12px;padding:4px 12px;cursor:pointer;color:var(--accent);margin-top:8px;font-weight:600}
+  .bubble .helpbtn:hover{background:var(--accent);color:var(--accent-ink)}
+  .bubble .de-help{font-size:14px;color:var(--ink);margin-top:8px;padding:8px 12px;background:var(--surface);border-radius:10px;border-left:3px solid var(--accent);line-height:1.5}
+  .bubble.bot.tipp{background:rgba(15,118,110,.1);border-left:3px solid var(--accent)}
+  .bubble.bot.tipp .en{color:var(--ink)}
   .correction{background:rgba(180,83,9,.08);border:1px dashed var(--warn);border-radius:10px;padding:10px;margin-top:6px;font-size:13px;color:var(--ink)}
   .correction b{color:var(--warn)}
   .praise{background:rgba(21,128,61,.08);border:1px dashed var(--good);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13px;color:var(--good)}
@@ -135,11 +137,14 @@
 
 <div id="fileWarn" class="card hide" style="border-color:var(--warn);background:rgba(180,83,9,.08)">
   <h3 style="color:var(--warn);margin-bottom:6px">⚠️ Du hast die App als lokale Datei geöffnet</h3>
-  <div class="muted" style="color:var(--ink)">Browser erlauben das Mikrofon auf <code>file://</code>-URLs nicht dauerhaft. Darum fragt es jedes Mal neu.</div>
-  <div style="margin-top:10px"><b>Schnellste Lösung:</b> öffne cmd / PowerShell im Ordner mit der Datei und starte einen Mini-Server:</div>
-  <div style="margin-top:6px"><kbd>python -m http.server 8000</kbd> &nbsp; (oder mit Node: <kbd>npx serve .</kbd>)</div>
-  <div style="margin-top:6px">Dann im Browser öffnen: <kbd>http://localhost:8000</kbd></div>
-  <div class="muted" style="margin-top:10px">Noch besser: GitHub Pages aktivieren – siehe Chat.</div>
+  <div style="color:var(--ink)">Browser erlauben das Mikrofon auf <code>file://</code>-URLs nicht dauerhaft. Darum fragt es jedes Mal neu, und die Spracherkennung wirft einen Netzwerkfehler.</div>
+  <div style="margin-top:10px"><b>Lösung:</b> Nutze stattdessen die Online-Version:</div>
+  <div style="margin-top:6px"><a href="https://spirit8787.github.io/mein-projekt/" style="color:var(--accent);font-weight:600">https://spirit8787.github.io/mein-projekt/</a></div>
+</div>
+<div id="braveWarn" class="card hide" style="border-color:var(--warn);background:rgba(180,83,9,.08)">
+  <h3 style="color:var(--warn);margin-bottom:6px">🦁 Du nutzt Brave Browser</h3>
+  <div style="color:var(--ink)">Brave blockiert die Google-Spracherkennung aus Datenschutzgründen – das <b>Mikrofon funktioniert hier nicht</b>. Tippen klappt natürlich weiter.</div>
+  <div style="margin-top:10px"><b>Lösung:</b> Diese Seite in <b>Microsoft Edge</b> oder <b>Google Chrome</b> öffnen. Dort funktioniert das Mikrofon sofort.</div>
 </div>
 
 <!-- TUTOR -->
@@ -374,11 +379,16 @@ function initRecognition(){
   _rec.onerror = (e)=>{
     _recBtn?.classList.remove('listening');
     if(e.error==='not-allowed' || e.error==='service-not-allowed'){
-      alert("Der Browser lässt das Mikrofon nicht zu.\n\nTipp: Die App MUSS über http://localhost oder https:// laufen, nicht als lokale Datei (file://).\n\nSchnelle Lösung: siehe Warnhinweis oben in der App.");
+      alert("Der Browser lässt das Mikrofon nicht zu.\n\n• Oben links in der Adressleiste auf das Schloss-Symbol klicken\n• Mikrofon auf 'Erlauben' stellen\n• Seite neu laden (F5)");
     }else if(e.error==='no-speech'){
       // ignore silently
     }else if(e.error==='network'){
-      alert("Netzwerkfehler bei der Spracherkennung. Die Erkennung läuft über Google-Server – das klappt auf file:// nicht. Bitte über localhost oder https öffnen.");
+      const isBrave = navigator.brave || /Brave/.test(navigator.userAgent) || location.protocol==='file:';
+      if(location.protocol==='file:'){
+        alert("Netzwerkfehler bei der Spracherkennung.\n\nDu hast die App als lokale Datei (file://) geöffnet. Die Spracherkennung läuft über Online-Server, die so nicht erreichbar sind.\n\nLösung: Öffne stattdessen https://spirit8787.github.io/mein-projekt/");
+      } else {
+        alert("Netzwerkfehler bei der Spracherkennung.\n\nDas passiert bei Brave Browser: Brave blockiert die Google-Spracherkennung aus Datenschutzgründen.\n\nLösung: Öffne diese Seite in Microsoft Edge oder Google Chrome – dort funktioniert's sofort.\n\nTippen geht hier aber natürlich weiter.");
+      }
     }
   };
   _rec.onend = ()=>{ _recBtn?.classList.remove('listening'); };
@@ -605,13 +615,13 @@ function germanFor(text){
 function addHelpButton(div, text){
   const btn = document.createElement('button');
   btn.className='helpbtn';
-  btn.textContent = '🇩🇪 Hilfe';
+  btn.textContent = '🇩🇪 Auf Deutsch zeigen';
   const show = ()=>{
     const de = germanFor(text);
     if(!de) return;
     const d = document.createElement('div');
     d.className='de-help';
-    d.textContent = de;
+    d.textContent = '🇩🇪 ' + de;
     div.appendChild(d);
     btn.remove();
   };
@@ -656,8 +666,47 @@ function tutorReply(userText){
   if(/\b(happy|great|excited|love|amazing|wonderful)\b/.test(low)) return "That's wonderful! " + pick(bank.followups);
   return pick(bank.followups);
 }
+function isGerman(text){
+  const t = text.toLowerCase();
+  // Deutsche Sonderzeichen
+  if(/[äöüß]/.test(text)) return true;
+  // Häufige deutsche Wörter, die im Englischen nicht vorkommen
+  const deWords = /\b(ich|und|nicht|aber|oder|auch|noch|schon|sehr|immer|nie|hier|dort|heute|morgen|gestern|kannst|kann|könnte|möchte|will|habe|hast|hatte|bist|seid|sind|werde|wirst|wird|wurde|mein|dein|sein|unser|euer|diese|dieser|dieses|jenes|was|wer|wo|wann|warum|wie|welche|welcher|dass|weil|wenn|obwohl|während|deutsch|englisch|bedeutet|heißt|verstehe|verstehen|erklär|übersetz|frage|antwort|bitte|danke)\b/;
+  return deWords.test(t);
+}
+
+function germanHelper(text){
+  // Erkenne Absicht und gib passende Hilfe auf Deutsch
+  const t = text.toLowerCase();
+  if(/\b(bedeutet|heißt|was ist|was heißt|übersetz|erklär|verstehe nicht|nicht verstanden|was war|was hast du)\b/.test(t)){
+    return `💡 Kein Problem! Klick auf den Button **🇩🇪 Auf Deutsch zeigen** unter meiner letzten Nachricht, dann siehst du die Übersetzung. Oder nutze den Tab **🔤 Übersetzer** oben – da kannst du jeden englischen Satz einfügen und ich erkläre dir jedes Wort einzeln.\n\nAntwort einfach auf Englisch – versuch es so gut du kannst, ich korrigiere dich!`;
+  }
+  if(/\b(kannst du deutsch|sprichst du deutsch|auf deutsch)\b/.test(t)){
+    return `💡 Ja, ich verstehe dich auf Deutsch, antworte aber absichtlich auf Englisch – so trainierst du am meisten. Wenn du etwas nicht verstehst, klick einfach auf **🇩🇪 Auf Deutsch zeigen** unter meiner Nachricht. Oder setz oben den Haken bei **Deutsche Hilfe immer zeigen**, dann steht die Übersetzung automatisch dabei.\n\nJetzt los: antworte auf Englisch, auch mit Fehlern. Das ist der ganze Sinn. 💪`;
+  }
+  if(/\b(hilfe|help|wie geht|was soll ich|ich weiss nicht|ich weiß nicht)\b/.test(t)){
+    return `💡 So funktioniert es: Ich (der Tutor) stelle dir Fragen auf Englisch. Du antwortest auf Englisch – per Tastatur oder Mikrofon. Deine Fehler korrigiere ich sofort. Wenn du eine Frage nicht verstehst, klick auf **🇩🇪 Auf Deutsch zeigen** unter meiner Nachricht.\n\nBeispiel: Ich frage *How are you today?* → du antwortest *I am fine, thanks* oder *I am tired because I worked a lot*.\n\nProbier es jetzt!`;
+  }
+  // Generische Erklärung
+  return `💡 Du hast auf Deutsch geschrieben. Für den besten Lerneffekt antworte bitte auf **Englisch** – auch mit Fehlern, die korrigiere ich.\n\nWenn du meine letzte Nachricht nicht verstanden hast: Klick auf **🇩🇪 Auf Deutsch zeigen** darunter. Oder setz oben den Haken bei **Deutsche Hilfe immer zeigen**.`;
+}
+
 function handleTutor(text){
   if(!text || !text.trim()) return;
+  // Deutsche Eingabe erkennen
+  if(isGerman(text)){
+    appendBubble('user', text);
+    state.stats.spoken++; save();
+    const tipp = germanHelper(text);
+    setTimeout(()=>{
+      const div = document.createElement('div');
+      div.className = 'bubble bot tipp';
+      div.innerHTML = tipp.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g,'<br>');
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }, 200);
+    return;
+  }
   const {corrected, issues} = detectMistakes(text);
   const correctionHtml = issues.length
     ? `„${escapeHtml(text)}" → <b>„${escapeHtml(corrected)}"</b><br>` + issues.filter(i=>i.note).map(i=>'• '+escapeHtml(i.note)).join('<br>')
@@ -1519,6 +1568,10 @@ $('resetProgress').addEventListener('click', ()=>{
 
 /* ---------------- Boot ---------------- */
 if(location.protocol==='file:'){ $('fileWarn').classList.remove('hide'); }
+// Brave-Erkennung (async): zeigt Hinweis, dass Mikro nicht geht
+if(navigator.brave && navigator.brave.isBrave){
+  navigator.brave.isBrave().then(isBrave=>{ if(isBrave) $('braveWarn').classList.remove('hide'); }).catch(()=>{});
+}
 // Toggle "Deutsche Hilfe immer anzeigen" persistieren
 $('alwaysDe').checked = !!store.get('alwaysDe', false);
 $('alwaysDe').addEventListener('change', e=>{
