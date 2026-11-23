@@ -1,0 +1,114 @@
+{
+  "_hinweis_": "Zwei Datensätze — baue je einen in den jeweiligen Shopify-Shop ein. In Shopify: Theme → Code bearbeiten → theme.liquid → im <head> folgendes JSON-LD-Script einfügen. BITTE EINTRAGEN Werte durch echte Daten ersetzen.",
+
+  "klangschalencenter": {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://www.klangschalencenter.ch/#organization",
+    "name": "Klangschalencenter",
+    "url": "https://www.klangschalencenter.ch",
+    "logo": "https://www.klangschalencenter.ch/BITTE-LOGO-URL-EINTRAGEN.png",
+    "image": "https://www.klangschalencenter.ch/BITTE-HAUPTBILD-URL-EINTRAGEN.jpg",
+    "description": "Schweizer Spezialist für Klangschalen, Kristallklangschalen, Gongs und Klangzubehör. Versand aus der Schweiz.",
+    "telephone": "BITTE EINTRAGEN (Format: +41 XX XXX XX XX)",
+    "email": "BITTE EINTRAGEN",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "BITTE EINTRAGEN",
+      "postalCode": "BITTE EINTRAGEN",
+      "addressLocality": "BITTE EINTRAGEN",
+      "addressRegion": "BITTE EINTRAGEN (z.B. Luzern)",
+      "addressCountry": "CH"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "BITTE EINTRAGEN (z.B. 09:00)",
+        "closes": "BITTE EINTRAGEN (z.B. 18:00)"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Saturday"],
+        "opens": "BITTE EINTRAGEN",
+        "closes": "BITTE EINTRAGEN"
+      }
+    ],
+    "priceRange": "BITTE EINTRAGEN (z.B. CHF – CHFFFF)",
+    "paymentAccepted": ["Credit Card", "TWINT", "Invoice", "PayPal"],
+    "areaServed": {
+      "@type": "Country",
+      "name": "Schweiz"
+    },
+    "sameAs": [
+      "BITTE EINTRAGEN — Facebook-URL",
+      "BITTE EINTRAGEN — Instagram-URL",
+      "BITTE EINTRAGEN — local.ch-Eintrag nach Anlage"
+    ]
+  },
+
+  "spiritwellness": {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://www.spiritwellness.ch/#organization",
+    "name": "Spirit Wellness",
+    "url": "https://www.spiritwellness.ch",
+    "logo": "https://www.spiritwellness.ch/BITTE-LOGO-URL-EINTRAGEN.png",
+    "image": "https://www.spiritwellness.ch/BITTE-HAUPTBILD-URL-EINTRAGEN.jpg",
+    "description": "Schweizer Shop für Meditationskissen, Räucherwerk, Räucherzubehör und spirituelle Produkte. Versand aus der Schweiz.",
+    "telephone": "BITTE EINTRAGEN (idealerweise andere Nummer als Klangschalencenter)",
+    "email": "BITTE EINTRAGEN",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "BITTE EINTRAGEN",
+      "postalCode": "BITTE EINTRAGEN",
+      "addressLocality": "BITTE EINTRAGEN",
+      "addressRegion": "BITTE EINTRAGEN",
+      "addressCountry": "CH"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "BITTE EINTRAGEN",
+        "closes": "BITTE EINTRAGEN"
+      }
+    ],
+    "priceRange": "BITTE EINTRAGEN",
+    "paymentAccepted": ["Credit Card", "TWINT", "Invoice", "PayPal"],
+    "areaServed": {
+      "@type": "Country",
+      "name": "Schweiz"
+    },
+    "sameAs": [
+      "BITTE EINTRAGEN — Facebook-URL",
+      "BITTE EINTRAGEN — Instagram-URL",
+      "BITTE EINTRAGEN — local.ch-Eintrag"
+    ]
+  },
+
+  "_faq_hinweis_": "Zusätzlich auf jeder Kategorieseite einen FAQPage-Block einbinden. Beispielvorlage für Klangschalencenter unten; analog für Spirit Wellness.",
+
+  "faqpage_klangschalen_beispiel": {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Welche Klangschale eignet sich für Anfänger?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Für den Einstieg empfehlen wir eine handgeschmiedete tibetische Klangschale zwischen 500 und 800 Gramm mit mittlerer Tonhöhe. Sie ist gross genug für einen vollen Klang, aber noch leicht genug um sie in der Hand zu halten. Preislich startest du bei etwa BITTE EINTRAGEN CHF."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Was kostet eine Kristallklangschale?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Kristallklangschalen kosten deutlich mehr als Metallklangschalen, weil sie aus reinem Quarz gefertigt werden. Bei uns beginnen die Preise bei BITTE EINTRAGEN CHF für eine kleine Chakra-Kristallschale und reichen bis BITTE EINTRAGEN CHF für grosse, tonreine Modelle."
+        }
+      }
+    ]
+  }
+}
